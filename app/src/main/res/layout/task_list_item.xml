@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <FrameLayout
+        android:layout_width="75dp"
+        android:layout_height="75dp">
+
+        <ImageView
+            android:id="@+id/list_item_icon"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/i_image"/>
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_margin="16dp">
+
+        <TextView
+            android:id="@+id/list_item_date_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:text="20/04"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/list_item_time_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:text="16:00"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+
+    <TextView
+            android:id="@+id/list_item_title_text_view"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:fontFamily="sans-serif-condensed"
+            android:text="Eat Steak!"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:gravity="center_vertical"
+            android:textSize="30sp"
+            />
+
+
+
+</LinearLayout>

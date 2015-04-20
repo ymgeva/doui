@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:id="@+id/connect_to_partner"
+    android:visibility="visible">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/connect_to_partner_explanation"
+        android:fontFamily="san-serif"
+        android:textSize="18dp"/>
+
+    <EditText
+        android:id="@+id/partner_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/ParseLoginUI.EditText"
+        android:hint="@string/partner_email_hint" />
+
+    <EditText
+        android:id="@+id/shared_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/ParseLoginUI.EditText"
+        android:layout_marginTop="@dimen/com_parse_ui_small_vertical_spacing"
+        android:fontFamily="sans-serif"
+        android:hint="@string/shared_password_hint"
+        android:inputType="textPassword"
+        android:selectAllOnFocus="true" />
+
+    <LinearLayout
+        android:id="@+id/parse_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/com_parse_ui_large_vertical_spacing"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/connect_button"
+            style="@style/ParseLoginUI.Button"
+            android:text="@string/connect_button_label"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"/>
+
+        <Button
+            android:id="@+id/skip_button"
+            style="@style/ParseLoginUI.Button"
+            android:text="@string/skip_button_label"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"/>
+
+
+    </LinearLayout>
+
+
+</LinearLayout>
