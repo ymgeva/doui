@@ -41,8 +41,8 @@ public class TaskDetailActivity extends ActionBarActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(TaskDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(TaskDetailFragment.ARG_ITEM_ID));
+            arguments.putLong(TaskDetailFragment.TASK_ID,
+                    getIntent().getLongExtra(TaskDetailFragment.TASK_ID,0));
             TaskDetailFragment fragment = new TaskDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

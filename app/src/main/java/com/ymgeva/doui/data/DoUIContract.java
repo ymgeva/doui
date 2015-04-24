@@ -60,7 +60,7 @@ public class DoUIContract {
         public static final String COLUMN_ASSIGNED_TO = "assigned_to";
         public static final String COLUMN_REMINDER = "reminder";
         public static final String COLUMN_REMINDER_TIME = "reminder_time";
-        public static final String COLUMN_TEXT = "task_text";
+        public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_NOTIFY_WHEN_DONE = "notify_when_done";
         public static final String COLUMN_IMAGE = "task_image";
         public static final String COLUMN_TITLE = "title";
@@ -85,7 +85,7 @@ public class DoUIContract {
         public static final String TABLE_NAME = "shopping_items";
 
         public static final String COLUMN_PARSE_ID = "parse_id";
-        public static final String COLUMN_TEXT = "text";
+        public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_QUANTITY = "quantity";
         public static final String COLUMN_CREATED_BY = "created_by";
         public static final String COLUMN_URGENT = "urgent";
@@ -109,7 +109,7 @@ public class DoUIContract {
         public static final String TABLE_NAME = "general_items";
 
         public static final String COLUMN_PARSE_ID = "parse_id";
-        public static final String COLUMN_TEXT = "text";
+        public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_CREATED_BY = "created_by";
         public static final String COLUMN_ASSIGNED_TO = "assigned_to";
         public static final String COLUMN_URGENT = "urgent";
@@ -121,6 +121,10 @@ public class DoUIContract {
         public static Uri buildGeneralItemUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+    }
+
+    public static String getItemFromUri(Uri uri) {
+        return uri.getPathSegments().get(1);
     }
 
 }

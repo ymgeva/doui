@@ -4,7 +4,6 @@ import com.parse.ParseClassName;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.ParseUser;
 import com.ymgeva.doui.data.DoUIContract;
 
 import java.util.Date;
@@ -18,8 +17,8 @@ public class TaskItem extends ParseObject {
     public String getTitle(){return getString(DoUIContract.TaskItemEntry.COLUMN_TITLE);}
     public void setTitle(String str) {put(DoUIContract.TaskItemEntry.COLUMN_TITLE,str);}
 
-    public String getItemText(){return getString(DoUIContract.TaskItemEntry.COLUMN_TEXT);}
-    public void setItemText(String str) {put(DoUIContract.TaskItemEntry.COLUMN_TEXT,str);}
+    public String getItemDescription(){return getString(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION);}
+    public void setItemDescription(String str) {put(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,str);}
 
     public String getAssignedTo(){return getString(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO);}
     public void setAssignedTo(String  user) {put(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,user);}

@@ -1,13 +1,9 @@
 package com.ymgeva.doui.parse.items;
 
 import com.parse.ParseClassName;
-import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.ParseUser;
 import com.ymgeva.doui.data.DoUIContract;
-
-import java.util.Date;
 
 /**
  * Created by Yoav on 4/16/15.
@@ -15,8 +11,8 @@ import java.util.Date;
 @ParseClassName("ShoppingItem")
 public class ShoppingItem extends ParseObject {
 
-    public String getItemText(){return getString(DoUIContract.ShoppingItemEntry.COLUMN_TEXT);}
-    public void setItemText(String str) {put(DoUIContract.ShoppingItemEntry.COLUMN_TEXT,str);}
+    public String getTitle(){return getString(DoUIContract.ShoppingItemEntry.COLUMN_TITLE);}
+    public void setTitle(String str) {put(DoUIContract.ShoppingItemEntry.COLUMN_TITLE,str);}
 
     public String getCreatedBy(){return getString(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY);}
     public void setCreatedBY(String user) {put(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY,user);}

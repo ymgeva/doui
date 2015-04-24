@@ -121,7 +121,7 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,taskItem.getReminderTime().getTime());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER,taskItem.getReminder());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,taskItem.getNotifyWhenDone());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_TEXT,taskItem.getItemText());
+                        values.put(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,taskItem.getItemDescription());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
 
                         allValues.add(values);
@@ -169,7 +169,7 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_ASSIGNED_TO, item.getAssignedTo());
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_DONE,item.getDone());
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_NOTIFY_WHEN_DONE,item.getNotifyWhenDone());
-                        values.put(DoUIContract.GeneralItemEntry.COLUMN_TEXT, item.getItemText());
+                        values.put(DoUIContract.GeneralItemEntry.COLUMN_TITLE, item.getTitle());
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_PARSE_ID,item.getObjectId());
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_URGENT,item.getUrgent());
 
@@ -215,7 +215,7 @@ public class DoUIParseSyncAdapter {
                         ContentValues values = new ContentValues();
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY, item.getCreatedBy());
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_DONE,item.getDone());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_TEXT,item.getItemText());
+                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_TITLE,item.getTitle());
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,item.getObjectId());
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT,item.getUrgent());
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());

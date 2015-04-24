@@ -1,25 +1,30 @@
 package com.ymgeva.doui.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * Created by Yoav on 4/14/15.
  */
 public class DoUIContentProvider extends ContentProvider {
 
-
+    private static final String LOG_TAG = DoUIContentProvider.class.getSimpleName();
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private DbHelper mOpenHelper;
 
     private static final int TASKS = 100;
+    private static final int TASK_BY_ID = 101;
     private static final int SHOPPING = 200;
+    private static final int SHOPPING_ITEM_BY_ID = 201;
     private static final int GENERAL = 300;
+    private static final int GENERAL_ITEM_BY_ID = 301;
 
     private static UriMatcher buildUriMatcher() {
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -27,11 +32,27 @@ public class DoUIContentProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, DoUIContract.PATH_TASKS, TASKS);
+        matcher.addURI(authority, DoUIContract.PATH_TASKS+"/*", TASK_BY_ID);
         matcher.addURI(authority, DoUIContract.PATH_SHOPPING,SHOPPING);
+        matcher.addURI(authority, DoUIContract.PATH_SHOPPING+"/*", SHOPPING_ITEM_BY_ID);
         matcher.addURI(authority, DoUIContract.PATH_GENERAL,GENERAL);
+        matcher.addURI(authority, DoUIContract.PATH_GENERAL+"/*", GENERAL_ITEM_BY_ID);
+
 
 
         return matcher;
+    }
+
+    private Cursor queryById(SQLiteQueryBuilder builder,Uri uri, String[] projection, String tableName) {
+        builder.setTables(tableName);
+        return builder.query(mOpenHelper.getReadableDatabase(),
+                projection,
+                DoUIContract.TaskItemEntry._ID + " = '" + ContentUris.parseId(uri) + "'",
+                null,
+                null,
+                null,
+                null
+        );
     }
 
     @Override
@@ -43,33 +64,51 @@ public class DoUIContentProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+        Cursor cursor = null;
 
         switch (sUriMatcher.match(uri)) {
             case TASKS: {
                 builder.setTables(DoUIContract.TaskItemEntry.TABLE_NAME);
                 break;
             }
+            case TASK_BY_ID: {
+                cursor = queryById(builder,uri,projection, DoUIContract.TaskItemEntry.TABLE_NAME);
+                break;
+            }
             case SHOPPING: {
                 builder.setTables(DoUIContract.ShoppingItemEntry.TABLE_NAME);
+                break;
+            }
+            case SHOPPING_ITEM_BY_ID: {
+                cursor = queryById(builder,uri,projection, DoUIContract.ShoppingItemEntry.TABLE_NAME);
                 break;
             }
             case GENERAL: {
                 builder.setTables(DoUIContract.GeneralItemEntry.TABLE_NAME);
                 break;
             }
+            case GENERAL_ITEM_BY_ID: {
+                cursor = queryById(builder,uri,projection, DoUIContract.TaskItemEntry.TABLE_NAME);
+                break;
+            }
             default: {
+                Log.d(LOG_TAG, "URI doesn't match: " + uri.toString() + " --- " + sUriMatcher.match(uri));
                 return null;
             }
         }
 
-        return builder.query(mOpenHelper.getReadableDatabase(),
-                projection,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                sortOrder
-        );
+        if (cursor == null) {
+            cursor = builder.query(mOpenHelper.getReadableDatabase(),
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    sortOrder
+            );
+        }
+        cursor.setNotificationUri(getContext().getContentResolver(),uri);
+        return cursor;
      }
 
     @Override
@@ -77,8 +116,11 @@ public class DoUIContentProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case TASKS:return DoUIContract.TaskItemEntry.CONTENT_TYPE;
+            case TASK_BY_ID:return DoUIContract.TaskItemEntry.CONTENT_ITEM_TYPE;
             case SHOPPING:return DoUIContract.ShoppingItemEntry.CONTENT_TYPE;
+            case SHOPPING_ITEM_BY_ID:return DoUIContract.ShoppingItemEntry.CONTENT_ITEM_TYPE;
             case GENERAL:return DoUIContract.GeneralItemEntry.CONTENT_TYPE;
+            case GENERAL_ITEM_BY_ID:return DoUIContract.GeneralItemEntry.CONTENT_ITEM_TYPE;
 
         }
         return null;
@@ -193,7 +235,7 @@ public class DoUIContentProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         String tableName;
         switch (match) {
-            case TASKS: {
+                case TASKS: {
                 tableName = DoUIContract.TaskItemEntry.TABLE_NAME;
                 break;
             }

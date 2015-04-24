@@ -7,29 +7,15 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
 
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 
-
-/**
- * An activity representing a list of Tasks. This activity
- * has different presentations for handset and tablet-size devices. On
- * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link TaskDetailActivity} representing
- * item details. On tablets, the activity presents the list of items and
- * item details side-by-side using two vertical panes.
- * <p/>
- * The activity makes heavy use of fragments. The list of items is a
- * {@link TaskListFragment} and the item details
- * (if present) is a {@link TaskDetailFragment}.
- * <p/>
- * This activity also implements the required
- * {@link TaskListFragment.Callbacks} interface
- * to listen for item selections.
- */
-public class TaskListActivity extends FragmentActivity
+public class TaskListActivity extends ActionBarActivity
         implements TaskListFragment.Callbacks {
 
     /**
@@ -71,18 +57,22 @@ public class TaskListActivity extends FragmentActivity
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
-    /**
-     * Callback method from {@link TaskListFragment.Callbacks}
-     * indicating that the item with the given ID was selected.
-     */
     @Override
-    public void onItemSelected(String id) {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_task_list, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public void onItemSelected(long id) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(TaskDetailFragment.ARG_ITEM_ID, id);
+            arguments.putLong(TaskDetailFragment.TASK_ID, id);
             TaskDetailFragment fragment = new TaskDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -93,7 +83,7 @@ public class TaskListActivity extends FragmentActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, TaskDetailActivity.class);
-            detailIntent.putExtra(TaskDetailFragment.ARG_ITEM_ID, id);
+            detailIntent.putExtra(TaskDetailFragment.TASK_ID, id);
             startActivity(detailIntent);
         }
     }

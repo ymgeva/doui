@@ -24,7 +24,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.TaskItemEntry._ID + " INTEGER PRIMARY KEY," +
                 DoUIContract.TaskItemEntry.COLUMN_PARSE_ID + " TEXT NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
-                DoUIContract.TaskItemEntry.COLUMN_TEXT + " TEXT, " +
+                DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION + " TEXT, " +
                 DoUIContract.TaskItemEntry.COLUMN_DATE + " INTEGER NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE + " INTEGER NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_REMINDER + " INTEGER NOT NULL, " +
@@ -39,7 +39,7 @@ public class DbHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_SHOPPING_ITEMS_TABLE = "CREATE TABLE " + DoUIContract.ShoppingItemEntry.TABLE_NAME + " (" +
                 DoUIContract.ShoppingItemEntry._ID + " INTEGER PRIMARY KEY," +
                 DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID + " TEXT NOT NULL, " +
-                DoUIContract.ShoppingItemEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                DoUIContract.ShoppingItemEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY + " INTEGER, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_URGENT + " INTEGER NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
@@ -50,7 +50,7 @@ public class DbHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_GENERAL_ITEMS_TABLE = "CREATE TABLE " + DoUIContract.GeneralItemEntry.TABLE_NAME + " (" +
                 DoUIContract.GeneralItemEntry._ID + " INTEGER PRIMARY KEY," +
                 DoUIContract.GeneralItemEntry.COLUMN_PARSE_ID + " TEXT NOT NULL, " +
-                DoUIContract.GeneralItemEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                DoUIContract.GeneralItemEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_ASSIGNED_TO + " TEXT NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_URGENT + " INTEGER NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_NOTIFY_WHEN_DONE + " INTEGER NOT NULL, " +

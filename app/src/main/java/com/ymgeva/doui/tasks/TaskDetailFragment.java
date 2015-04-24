@@ -1,51 +1,116 @@
 package com.ymgeva.doui.tasks;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 
 import com.ymgeva.doui.R;
-import com.ymgeva.doui.dummy.DummyContent;
+import com.ymgeva.doui.Utility;
+import com.ymgeva.doui.data.DoUIContract;
+import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 
-/**
- * A fragment representing a single Task detail screen.
- * This fragment is either contained in a {@link TaskListActivity}
- * in two-pane mode (on tablets) or a {@link TaskDetailActivity}
- * on handsets.
- */
-public class TaskDetailFragment extends Fragment {
-    /**
-     * The fragment argument representing the item ID that this fragment
-     * represents.
-     */
-    public static final String ARG_ITEM_ID = "item_id";
+public class TaskDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    /**
-     * The dummy content this fragment is presenting.
-     */
-    private DummyContent.DummyItem mItem;
+    private static final String LOG_TAG = TaskDetailFragment.class.getSimpleName();
+    public static final String TASK_ID = "task_id";
+    private static final int LOADER_TAG = 100;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
+    private TextView mTitle;
+    private TextView mDescription;
+    private TextView mDateView;
+    private TextView mTimeView;
+    private Button mEditButton;
+    private Button mDoneButton;
+    private ImageView mCreatedBy;
+    private ImageView mAssignedTo;
+    private CheckBox mReminder;
+    private CheckBox mNotifyWhenDone;
+    private TextView mReminderTime;
+
+    public static final String[] TASK_COLUMNS = {
+            DoUIContract.TaskItemEntry._ID,
+            DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,
+            DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,
+            DoUIContract.TaskItemEntry.COLUMN_DATE,
+            DoUIContract.TaskItemEntry.COLUMN_TITLE,
+            DoUIContract.TaskItemEntry.COLUMN_DONE,
+            DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,
+            DoUIContract.TaskItemEntry.COLUMN_REMINDER,
+            DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,
+            DoUIContract.TaskItemEntry.COLUMN_IMAGE,
+            DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,
+            DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE
+    };
+
+    public static final int COL_ID = 0;
+    public static final int COL_PARSE_ID = 1;
+    public static final int COL_ASSIGNED_TO = 2;
+    public static final int COL_DATE = 3;
+    public static final int COL_TITLE = 4;
+    public static final int COL_DONE = 5;
+    public static final int COL_TEXT = 6;
+    public static final int COL_REMINDER = 7;
+    public static final int COL_REMINDER_TIME = 8;
+    public static final int COL_IMAGE = 9;
+    public static final int COL_CREATED_BY = 10;
+    public static final int COL_NOTIFY_WHEN_DONE = 11;
+
+
+
+    private boolean isEditMode;
+    private boolean isNewItemMode;
+    private long mTaskId;
+
     public TaskDetailFragment() {
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Load the dummy content specified by the fragment
-            // arguments. In a real-world scenario, use a Loader
-            // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            mTaskId = savedInstanceState.getLong(TASK_ID);
         }
+        Bundle arguments = getArguments();
+        if (arguments != null && arguments.containsKey(TASK_ID)) {
+            getLoaderManager().initLoader(LOADER_TAG, null, this);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Bundle arguments = getArguments();
+        if (arguments != null && arguments.containsKey(TASK_ID)) {
+            long newId = arguments.getLong(TASK_ID);
+            if (mTaskId != newId) {
+                mTaskId = newId;
+                getLoaderManager().restartLoader(LOADER_TAG, null, this);
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putLong(TASK_ID, mTaskId);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -53,11 +118,73 @@ public class TaskDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.task_detail)).setText(mItem.content);
-        }
+        mTitle = (TextView)rootView.findViewById(R.id.task_detail_title);
+        mDescription = (TextView)rootView.findViewById(R.id.task_detail_text);
+        mReminderTime = (TextView)rootView.findViewById(R.id.task_detail_reminder_time);
+        mEditButton = (Button)rootView.findViewById(R.id.task_detail_edit_button);
+        mDoneButton = (Button)rootView.findViewById(R.id.task_detail_done_button);
+        mCreatedBy = (ImageView)rootView.findViewById(R.id.task_detail_from_image);
+        mAssignedTo = (ImageView)rootView.findViewById(R.id.task_detail_to_image);
+        mReminder = (CheckBox)rootView.findViewById(R.id.task_detail_reminder_checkbox);
+        mNotifyWhenDone = (CheckBox)rootView.findViewById(R.id.task_detail_notify_checkbox);
+        mDateView = (TextView)rootView.findViewById(R.id.task_detail_date);
+        mTimeView = (TextView)rootView.findViewById(R.id.task_detail_time);
+
+        mTaskId = getArguments().getLong(TASK_ID);
 
         return rootView;
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        Uri taskUri = DoUIContract.TaskItemEntry.buildTaskUri(mTaskId);
+
+        return new CursorLoader(
+                getActivity(),
+                taskUri,
+                TASK_COLUMNS,
+                null,
+                null,
+                null
+        );    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (data != null && data.moveToFirst()) {
+            mTitle.setText(data.getString(COL_TITLE));
+            mDescription.setText(data.getString(COL_TEXT));
+
+            String me = DoUIParseSyncAdapter.getInstance().getUserId();
+            if (me.equals(data.getString(COL_CREATED_BY))) {
+                mCreatedBy.setImageResource(R.drawable.i_image);
+            }
+            else {
+                mCreatedBy.setImageResource(R.drawable.u_image);
+            }
+
+            if (me.equals(data.getString(COL_ASSIGNED_TO))) {
+                mAssignedTo.setImageResource(R.drawable.i_image);
+            }
+            else {
+                mAssignedTo.setImageResource(R.drawable.u_image);
+            }
+
+            mDateView.setText(Utility.formatShortDate(data.getLong(COL_DATE)));
+            mTimeView.setText(Utility.formatTime(data.getLong(COL_DATE)));
+
+           mReminder.setChecked(data.getInt(COL_REMINDER) > 0);
+           mReminderTime.setText(Utility.formatTime(data.getLong(COL_REMINDER_TIME)));
+
+           mNotifyWhenDone.setChecked(data.getInt(COL_NOTIFY_WHEN_DONE) > 0);
+
+
+
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 }

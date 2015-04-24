@@ -3,6 +3,7 @@ package com.ymgeva.doui.login;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -20,6 +21,9 @@ import com.ymgeva.doui.tasks.TaskListActivity;
 
 public class LoginActivity extends ActionBarActivity implements LoginFragement.LoginFragmentInteractionListener,
         SignUpFragment.SignUpFragmentInteractionListener,ConnectToPartnerFragment.ConnectToPartnerFragmentInteractionListener {
+
+    private static final String LOG_TAG = LoginActivity.class.getSimpleName();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +66,7 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
                 if (user != null) {
                     goToMainScreen();
                 } else {
-                    // Signup failed. Look at the ParseException to see what happened.
+                    Log.e(LOG_TAG,"Login failed with exception: "+e.toString());
                 }
             }
         });

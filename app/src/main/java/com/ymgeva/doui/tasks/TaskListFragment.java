@@ -7,7 +7,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -28,6 +31,7 @@ import com.ymgeva.doui.data.DoUIContract;
  */
 public class TaskListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
+    private static final String LOG_TAG = TaskListFragment.class.getSimpleName();
     private static final int TASK_LIST_LOADER = 0;
     private static final String SELECTED_KEY = "selected_position";
 
@@ -37,7 +41,8 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
             DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,
             DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,
             DoUIContract.TaskItemEntry.COLUMN_DATE,
-            DoUIContract.TaskItemEntry.COLUMN_TITLE
+            DoUIContract.TaskItemEntry.COLUMN_TITLE,
+            DoUIContract.TaskItemEntry.COLUMN_DONE
     };
 
     public static final int COL_ID = 0;
@@ -45,6 +50,7 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_ASSIGNED_TO = 2;
     public static final int COL_DATE = 3;
     public static final int COL_TITLE = 4;
+    public static final int COL_DONE = 5;
 
 
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
@@ -58,12 +64,12 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
         /**
          * Callback for when an item has been selected.
          */
-        public void onItemSelected(String id);
+        public void onItemSelected(long id);
     }
 
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
-        public void onItemSelected(String id) {
+        public void onItemSelected(long id) {
         }
     };
 
@@ -92,7 +98,7 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
                 Cursor cursor = mAdapter.getCursor();
                 if (cursor != null && cursor.moveToPosition(position)) {
                     ((Callbacks)getActivity())
-                            .onItemSelected(cursor.getString(COL_PARSE_ID));
+                            .onItemSelected(cursor.getLong(COL_ID));
                     mActivatedPosition = position;
                 }
 
@@ -187,6 +193,7 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG,"onLoadFinished with "+data.getCount()+" rows");
         mAdapter.swapCursor(data);
         if (mActivatedPosition != ListView.INVALID_POSITION) {
             // If we don't need to restart the loader, and there's a desired position to restore
