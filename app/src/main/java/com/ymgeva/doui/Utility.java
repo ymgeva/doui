@@ -1,5 +1,7 @@
 package com.ymgeva.doui;
 
+import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
+
 import java.text.SimpleDateFormat;
 
 /**
@@ -15,4 +17,27 @@ public class Utility {
         return new SimpleDateFormat("HH:mm").format(date);
     }
 
+    public static String formatDateTime(long date) {
+        return new SimpleDateFormat("dd/MM HH:mm").format(date);
+    }
+
+    public static int imageResourseByUser(String user) {
+
+        if (user == null) {
+            return R.drawable.image_who;
+        }
+
+        String me = DoUIParseSyncAdapter.getInstance().getUserId();
+        String partner = DoUIParseSyncAdapter.getInstance().getPartnerId();
+
+        if (user.equals(me)) {
+            return R.drawable.i_image;
+        }
+
+        if (user.equals(partner)){
+            return R.drawable.u_image;
+        }
+
+        return R.drawable.image_who;
+    }
 }

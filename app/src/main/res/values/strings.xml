@@ -87,4 +87,16 @@
     <string name="edit">Edit</string>
     <string name="done">Done</string>
     <string name="action_add">Add</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_done">Done</string>
+    <string name="title_activity_edit_task">EditTaskActivity</string>
+    <string name="enter_date">Enter Date</string>
+    <string name="title">Title</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="description">Description</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="i_string">Me</string>
+    <string name="u_string">You</string>
 </resources>

@@ -8,6 +8,8 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -31,8 +33,6 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     private TextView mDescription;
     private TextView mDateView;
     private TextView mTimeView;
-    private Button mEditButton;
-    private Button mDoneButton;
     private ImageView mCreatedBy;
     private ImageView mAssignedTo;
     private CheckBox mReminder;
@@ -69,8 +69,6 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
 
 
 
-    private boolean isEditMode;
-    private boolean isNewItemMode;
     private long mTaskId;
 
     public TaskDetailFragment() {
@@ -114,6 +112,13 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
+    public void onCreateOptionsMenu(
+            Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu,inflater);
+        inflater.inflate(R.menu.menu_details_fragment, menu);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
@@ -121,8 +126,6 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
         mTitle = (TextView)rootView.findViewById(R.id.task_detail_title);
         mDescription = (TextView)rootView.findViewById(R.id.task_detail_text);
         mReminderTime = (TextView)rootView.findViewById(R.id.task_detail_reminder_time);
-        mEditButton = (Button)rootView.findViewById(R.id.task_detail_edit_button);
-        mDoneButton = (Button)rootView.findViewById(R.id.task_detail_done_button);
         mCreatedBy = (ImageView)rootView.findViewById(R.id.task_detail_from_image);
         mAssignedTo = (ImageView)rootView.findViewById(R.id.task_detail_to_image);
         mReminder = (CheckBox)rootView.findViewById(R.id.task_detail_reminder_checkbox);
@@ -131,6 +134,8 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
         mTimeView = (TextView)rootView.findViewById(R.id.task_detail_time);
 
         mTaskId = getArguments().getLong(TASK_ID);
+
+        setHasOptionsMenu(true);
 
         return rootView;
     }
