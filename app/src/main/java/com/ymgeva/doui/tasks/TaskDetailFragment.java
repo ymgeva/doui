@@ -1,5 +1,8 @@
 package com.ymgeva.doui.tasks;
 
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,9 +13,9 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,6 +25,7 @@ import com.ymgeva.doui.R;
 import com.ymgeva.doui.Utility;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
+import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 public class TaskDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -29,15 +33,22 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     public static final String TASK_ID = "task_id";
     private static final int LOADER_TAG = 100;
 
+    private long mDate;
+    private long mReminderTime;
+    private long mId;
+    private String mCreatedBy;
+    private String mAssignedTo;
+    private String mParseId;
+
     private TextView mTitle;
     private TextView mDescription;
     private TextView mDateView;
     private TextView mTimeView;
-    private ImageView mCreatedBy;
-    private ImageView mAssignedTo;
+    private ImageView mCreatedByView;
+    private ImageView mAssignedToView;
     private CheckBox mReminder;
     private CheckBox mNotifyWhenDone;
-    private TextView mReminderTime;
+    private TextView mReminderTimeView;
 
     public static final String[] TASK_COLUMNS = {
             DoUIContract.TaskItemEntry._ID,
@@ -67,6 +78,11 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     public static final int COL_CREATED_BY = 10;
     public static final int COL_NOTIFY_WHEN_DONE = 11;
 
+    private DetailsFragmentListener mListener;
+
+    public interface DetailsFragmentListener {
+        public void onDoneClicked(long _id);
+    }
 
 
     private long mTaskId;
@@ -119,15 +135,29 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+        if (id == R.id.action_edit) {
+            openEditActivity();
+        }
+        else if (id == R.id.action_done) {
+            mListener.onDoneClicked(mId);
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
 
         mTitle = (TextView)rootView.findViewById(R.id.task_detail_title);
         mDescription = (TextView)rootView.findViewById(R.id.task_detail_text);
-        mReminderTime = (TextView)rootView.findViewById(R.id.task_detail_reminder_time);
-        mCreatedBy = (ImageView)rootView.findViewById(R.id.task_detail_from_image);
-        mAssignedTo = (ImageView)rootView.findViewById(R.id.task_detail_to_image);
+        mReminderTimeView = (TextView)rootView.findViewById(R.id.task_detail_reminder_time);
+        mCreatedByView = (ImageView)rootView.findViewById(R.id.task_detail_from_image);
+        mAssignedToView = (ImageView)rootView.findViewById(R.id.task_detail_to_image);
         mReminder = (CheckBox)rootView.findViewById(R.id.task_detail_reminder_checkbox);
         mNotifyWhenDone = (CheckBox)rootView.findViewById(R.id.task_detail_notify_checkbox);
         mDateView = (TextView)rootView.findViewById(R.id.task_detail_date);
@@ -138,6 +168,43 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
         setHasOptionsMenu(true);
 
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // Activities containing this fragment must implement its callbacks.
+        if (!(activity instanceof DetailsFragmentListener)) {
+            throw new IllegalStateException("Activity must implement fragment's callbacks.");
+        }
+
+        mListener = (DetailsFragmentListener) activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    private void openEditActivity() {
+
+        Intent intent = new Intent(getActivity(),EditTaskActivity.class);
+        intent.putExtra(EditTaskActivity.IS_NEW_TASK_SETTING,false);
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_TITLE,mTitle.getText().toString());
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,mDescription.getText().toString());
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_REMINDER,mReminder.isChecked());
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,mNotifyWhenDone.isChecked());
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,mReminderTime);
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,mAssignedTo);
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,mCreatedBy);
+        intent.putExtra(DoUIContract.TaskItemEntry._ID,mId);
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,mParseId);
+        intent.putExtra(DoUIContract.TaskItemEntry.COLUMN_DATE,mDate);
+
+        startActivity(intent);
+
     }
 
     @Override
@@ -160,30 +227,25 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
             mTitle.setText(data.getString(COL_TITLE));
             mDescription.setText(data.getString(COL_TEXT));
 
-            String me = DoUIParseSyncAdapter.getInstance().getUserId();
-            if (me.equals(data.getString(COL_CREATED_BY))) {
-                mCreatedBy.setImageResource(R.drawable.i_image);
-            }
-            else {
-                mCreatedBy.setImageResource(R.drawable.u_image);
-            }
+            mCreatedBy = data.getString(COL_CREATED_BY);
+            mCreatedByView.setImageResource(Utility.imageResourseByUser(mCreatedBy));
 
-            if (me.equals(data.getString(COL_ASSIGNED_TO))) {
-                mAssignedTo.setImageResource(R.drawable.i_image);
-            }
-            else {
-                mAssignedTo.setImageResource(R.drawable.u_image);
-            }
+            mAssignedTo = data.getString(COL_ASSIGNED_TO);
+            mAssignedToView.setImageResource(Utility.imageResourseByUser(mAssignedTo));
 
-            mDateView.setText(Utility.formatShortDate(data.getLong(COL_DATE)));
-            mTimeView.setText(Utility.formatTime(data.getLong(COL_DATE)));
-
-           mReminder.setChecked(data.getInt(COL_REMINDER) > 0);
-           mReminderTime.setText(Utility.formatTime(data.getLong(COL_REMINDER_TIME)));
-
-           mNotifyWhenDone.setChecked(data.getInt(COL_NOTIFY_WHEN_DONE) > 0);
+            mDate = data.getLong(COL_DATE);
+            mDateView.setText(Utility.formatShortDate(mDate));
+            mTimeView.setText(Utility.formatTime(mDate));
 
 
+            mReminder.setChecked(data.getInt(COL_REMINDER) > 0);
+            mReminderTime = data.getLong(COL_REMINDER_TIME);
+            mReminderTimeView.setText(Utility.formatTime(mReminderTime));
+
+            mNotifyWhenDone.setChecked(data.getInt(COL_NOTIFY_WHEN_DONE) > 0);
+
+            mId = data.getLong(COL_ID);
+            mParseId = data.getString(COL_PARSE_ID);
 
         }
     }

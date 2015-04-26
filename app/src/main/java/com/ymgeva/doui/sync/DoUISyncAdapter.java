@@ -6,10 +6,12 @@ import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.data.DoUIContentProvider;
@@ -17,6 +19,7 @@ import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 
 import java.net.URI;
+import java.util.Date;
 
 /**
  * Created by Yoav on 4/16/15.
@@ -34,6 +37,8 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle bundle, String s, ContentProviderClient contentProviderClient, SyncResult syncResult) {
 
         String table = bundle.getString("requestedTable");
+
+
         if (table == null) {
             DoUIParseSyncAdapter.getInstance().syncTasks(getContext());
             DoUIParseSyncAdapter.getInstance().syncGeneralItems(getContext());
@@ -50,9 +55,6 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
                 DoUIParseSyncAdapter.getInstance().syncShoppingItems(getContext());
             }
         }
-
-
-
     }
 
     public static void initializeSyncAdapter(Context context) {

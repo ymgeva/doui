@@ -2,6 +2,7 @@ package com.ymgeva.doui.tasks;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Paint;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +42,6 @@ public class TaskListAdapter extends CursorAdapter  {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
-        Log.d(LOG_TAG,"newView, pos="+cursor.getPosition());
         View view = LayoutInflater.from(context).inflate(R.layout.task_list_item, viewGroup, false);
         ViewHolder viewHolder = new ViewHolder(view);
         view.setTag(viewHolder);
@@ -51,7 +51,6 @@ public class TaskListAdapter extends CursorAdapter  {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
-        Log.d(LOG_TAG,"bindView, pos="+cursor.getPosition());
 
         String assignedTo = cursor.getString(TaskListFragment.COL_ASSIGNED_TO);
         if (assignedTo.equals(DoUIParseSyncAdapter.getInstance().getUserId())) {
@@ -66,6 +65,18 @@ public class TaskListAdapter extends CursorAdapter  {
         viewHolder.mTimeTextView.setText(Utility.formatTime(date));
 
         viewHolder.mTitleTextView.setText(cursor.getString(TaskListFragment.COL_TITLE));
+
+        boolean isDone = cursor.getInt(TaskListFragment.COL_DONE) > 0;
+        if (isDone) {
+            viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.primary_text_disabled_material_light));
+
+            viewHolder.mDateTextView.setPaintFlags(viewHolder.mDateTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            viewHolder.mDateTextView.setTextColor(context.getResources().getColor(R.color.primary_text_disabled_material_light));
+
+            viewHolder.mTimeTextView.setPaintFlags(viewHolder.mTimeTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            viewHolder.mTimeTextView.setTextColor(context.getResources().getColor(R.color.primary_text_disabled_material_light));
+        }
 
     }
 }

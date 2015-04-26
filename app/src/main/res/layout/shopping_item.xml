@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="60dp"
+    >
+    <TextView
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:id="@+id/shopping_item_quantity_text_view"
+        android:text="3"
+        android:textSize="24sp"/>
+    <TextView
+        android:gravity="center_vertical"
+        android:layout_width="0dp"
+        android:layout_weight="4"
+        android:layout_height="match_parent"
+        android:id="@+id/shopping_item_title_text_view"
+        android:text="Cat food"
+        android:textSize="24sp"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/shopping_item_done_checkbox"
+        android:checked="false"
+        android:gravity="center"/>
+</LinearLayout>

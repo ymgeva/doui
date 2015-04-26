@@ -1,6 +1,7 @@
 package com.ymgeva.doui.tasks;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,7 +17,7 @@ import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 public class TaskListActivity extends ActionBarActivity
-        implements TaskListFragment.Callbacks {
+        implements TaskListFragment.Callbacks, TaskDetailFragment.DetailsFragmentListener {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -115,6 +116,20 @@ public class TaskListActivity extends ActionBarActivity
         super.onPause();
         unregisterReceiver(mReciever);
     }
+
+    @Override
+    public void onDoneClicked(long _id) {
+        taskDone(_id);
+    }
+
+    private void taskDone(long _id) {
+        ContentValues values = new ContentValues();
+        values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,true);
+        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,true);
+        getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+_id,null);
+        DoUISyncAdapter.syncImmediately(getApplicationContext(), DoUIContract.TaskItemEntry.TABLE_NAME);
+    }
+
     public class TaskListReceiver extends BroadcastReceiver {
 
         @Override

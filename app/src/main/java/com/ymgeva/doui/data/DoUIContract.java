@@ -13,6 +13,8 @@ import java.util.Date;
  */
 public class DoUIContract {
 
+    public static final String NOT_SYNCED = "not_synced";
+
     public static final String CONTENT_AUTHORITY = "com.ymgeva.doui";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     public static final String PATH_TASKS = "tasks";
@@ -44,6 +46,7 @@ public class DoUIContract {
 
     public static final class TaskItemEntry implements BaseColumns {
 
+
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_TASKS).build();
 
@@ -53,6 +56,9 @@ public class DoUIContract {
                 "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_TASKS;
 
         public static final String TABLE_NAME = "task_items";
+
+        public static final String LAST_SYNC_TIME = "last_sync_time_"+TABLE_NAME;
+
 
         public static final String COLUMN_PARSE_ID = "parse_id";
         public static final String COLUMN_DATE = "date";
@@ -65,7 +71,7 @@ public class DoUIContract {
         public static final String COLUMN_IMAGE = "task_image";
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_DONE = "done";
-
+        public static final String COLUMN_IS_DIRTY = "is_dirty";
 
         public static Uri buildTaskUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -83,6 +89,8 @@ public class DoUIContract {
         public static final String CONTENT_ITEM_TYPE =
                 "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_SHOPPING;
         public static final String TABLE_NAME = "shopping_items";
+        public static final String LAST_SYNC_TIME = "last_sync_time_"+TABLE_NAME;
+
 
         public static final String COLUMN_PARSE_ID = "parse_id";
         public static final String COLUMN_TITLE = "title";
@@ -90,6 +98,8 @@ public class DoUIContract {
         public static final String COLUMN_CREATED_BY = "created_by";
         public static final String COLUMN_URGENT = "urgent";
         public static final String COLUMN_DONE = "done";
+        public static final String COLUMN_IS_DIRTY = "is_dirty";
+
 
 
         public static Uri buildShoppingItemUri(long id) {
@@ -107,6 +117,7 @@ public class DoUIContract {
         public static final String CONTENT_ITEM_TYPE =
                 "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_SHOPPING;
         public static final String TABLE_NAME = "general_items";
+        public static final String LAST_SYNC_TIME = "last_sync_time_"+TABLE_NAME;
 
         public static final String COLUMN_PARSE_ID = "parse_id";
         public static final String COLUMN_TITLE = "title";
@@ -115,6 +126,8 @@ public class DoUIContract {
         public static final String COLUMN_URGENT = "urgent";
         public static final String COLUMN_NOTIFY_WHEN_DONE = "notify_when_done";
         public static final String COLUMN_DONE = "done";
+        public static final String COLUMN_IS_DIRTY = "is_dirty";
+
 
 
 

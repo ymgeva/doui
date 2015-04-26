@@ -1,5 +1,6 @@
 package com.ymgeva.doui.tasks;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -7,6 +8,8 @@ import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
 import com.ymgeva.doui.R;
+import com.ymgeva.doui.data.DoUIContract;
+import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 
 /**
@@ -18,7 +21,7 @@ import com.ymgeva.doui.R;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link TaskDetailFragment}.
  */
-public class TaskDetailActivity extends ActionBarActivity {
+public class TaskDetailActivity extends ActionBarActivity implements TaskDetailFragment.DetailsFragmentListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,5 +69,15 @@ public class TaskDetailActivity extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDoneClicked(long _id) {
+        ContentValues values = new ContentValues();
+        values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,true);
+        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,true);
+        getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+_id,null);
+        DoUISyncAdapter.syncImmediately(getApplicationContext(), DoUIContract.TaskItemEntry.TABLE_NAME);
+        finish();
     }
 }

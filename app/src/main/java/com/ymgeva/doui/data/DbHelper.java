@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String DATABASE_NAME = "doui.db";
 
@@ -22,7 +22,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_TASKS_TABLE = "CREATE TABLE " + DoUIContract.TaskItemEntry.TABLE_NAME + " (" +
                 DoUIContract.TaskItemEntry._ID + " INTEGER PRIMARY KEY," +
-                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID + " TEXT NOT NULL, " +
+                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID + " TEXT, " +
                 DoUIContract.TaskItemEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION + " TEXT, " +
                 DoUIContract.TaskItemEntry.COLUMN_DATE + " INTEGER NOT NULL, " +
@@ -33,6 +33,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.TaskItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_IMAGE + " BLOB, " +
                 DoUIContract.TaskItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
+                DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
                 "UNIQUE (" + DoUIContract.TaskItemEntry.COLUMN_PARSE_ID +") ON CONFLICT REPLACE"+
                 " );";
 
@@ -44,6 +45,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.ShoppingItemEntry.COLUMN_URGENT + " INTEGER NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
+                DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
                 "UNIQUE (" + DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID +") ON CONFLICT REPLACE"+
                 " );";
 
@@ -56,6 +58,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.GeneralItemEntry.COLUMN_NOTIFY_WHEN_DONE + " INTEGER NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
+                DoUIContract.GeneralItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
                 "UNIQUE (" + DoUIContract.GeneralItemEntry.COLUMN_PARSE_ID +") ON CONFLICT REPLACE"+
                 " );";
 

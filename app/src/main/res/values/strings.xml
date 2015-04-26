@@ -99,4 +99,5 @@
     <string name="action_cancel">Cancel</string>
     <string name="i_string">Me</string>
     <string name="u_string">You</string>
+    <string name="title_activity_shopping_list">Shopping List</string>
 </resources>

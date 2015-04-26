@@ -95,6 +95,10 @@
             android:name=".tasks.EditTaskActivity"
             android:label="@string/title_activity_edit_task" >
         </activity>
+        <activity
+            android:name=".shopping.ShoppingListActivity"
+            android:label="@string/title_activity_shopping_list" >
+        </activity>
     </application>
 
 </manifest>

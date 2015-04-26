@@ -3,8 +3,11 @@ package com.ymgeva.doui.parse;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.parse.FindCallback;
@@ -14,6 +17,7 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.items.GeneralItem;
@@ -30,6 +34,34 @@ import java.util.List;
  * Created by Yoav on 4/16/15.
  */
 public class DoUIParseSyncAdapter {
+
+    public static final String[] TASK_COLUMNS = {
+            DoUIContract.TaskItemEntry._ID,
+            DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,
+            DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,
+            DoUIContract.TaskItemEntry.COLUMN_DATE,
+            DoUIContract.TaskItemEntry.COLUMN_TITLE,
+            DoUIContract.TaskItemEntry.COLUMN_DONE,
+            DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,
+            DoUIContract.TaskItemEntry.COLUMN_REMINDER,
+            DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,
+            DoUIContract.TaskItemEntry.COLUMN_IMAGE,
+            DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,
+            DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE
+    };
+
+    public static final int COL_ID = 0;
+    public static final int COL_PARSE_ID = 1;
+    public static final int COL_ASSIGNED_TO = 2;
+    public static final int COL_DATE = 3;
+    public static final int COL_TITLE = 4;
+    public static final int COL_DONE = 5;
+    public static final int COL_TEXT = 6;
+    public static final int COL_REMINDER = 7;
+    public static final int COL_REMINDER_TIME = 8;
+    public static final int COL_IMAGE = 9;
+    public static final int COL_CREATED_BY = 10;
+    public static final int COL_NOTIFY_WHEN_DONE = 11;
 
     private final String LOG_TAG = DoUIParseSyncAdapter.class.getSimpleName();
 
@@ -78,8 +110,61 @@ public class DoUIParseSyncAdapter {
 
     public void syncTasks(final Context context) {
 
-        String me = ParseUser.getCurrentUser().getObjectId();
+        Cursor cursor = context.getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI, TASK_COLUMNS, DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY + " = 1", null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            Log.v(LOG_TAG,"Has unsaved items, will upload first");
+            uploadTasks(context, cursor);
+        }
+        else {
+            downloadTasks(context);
+        }
+    }
 
+    private void uploadTasks(final Context context,Cursor cursor) {
+        final List<TaskItem> taskItems = new ArrayList<>();
+        do {
+            TaskItem taskItem = new TaskItem();
+            String parseId = cursor.getString(COL_PARSE_ID);
+            if (!parseId.equals(DoUIContract.NOT_SYNCED)) {
+                taskItem.setObjectId(parseId);
+            }
+            taskItem.setAssignedTo(cursor.getString(COL_ASSIGNED_TO));
+            taskItem.setCreatedBY(cursor.getString(COL_CREATED_BY));
+            taskItem.setDate(new Date(cursor.getLong(COL_DATE)));
+            taskItem.setDone(cursor.getInt(COL_DONE) > 0);
+            taskItem.setItemDescription(cursor.getString(COL_TEXT));
+            taskItem.setNotifyWhenDone(cursor.getInt(COL_NOTIFY_WHEN_DONE) > 0);
+            taskItem.setReminder(cursor.getInt(COL_REMINDER) > 0);
+            taskItem.setReminderTime(new Date(cursor.getLong(COL_REMINDER_TIME)));
+            taskItem.setTitle(cursor.getString(COL_TITLE));
+            taskItem.put("LOCAL_ID",cursor.getLong(COL_ID));
+
+            taskItems.add(taskItem);
+        } while (cursor.moveToNext());
+
+        ParseObject.saveAllInBackground(taskItems, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    Log.v(LOG_TAG, taskItems.size() + " saved to Parse");
+                    for (TaskItem taskItem : taskItems) {
+                        ContentValues values = new ContentValues();
+                        values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
+                        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,false);
+                        context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
+                                values,"_ID = "+taskItem.getLong("LOCAL_ID"),
+                                null);
+                    }
+                    downloadTasks(context);
+                } else {
+                    Log.e(LOG_TAG, "Failed to save, will not download.", e);
+                }
+            }
+        });
+    }
+
+    private void downloadTasks(final Context context) {
+        String me = ParseUser.getCurrentUser().getObjectId();
         Calendar cal = new GregorianCalendar();
         cal.set(Calendar.HOUR_OF_DAY,0);
         cal.set(Calendar.MINUTE,0);
@@ -101,6 +186,11 @@ public class DoUIParseSyncAdapter {
         query.whereGreaterThanOrEqualTo(DoUIContract.TaskItemEntry.COLUMN_DATE,today);
         query.whereNotEqualTo(DoUIContract.TaskItemEntry.COLUMN_DONE,true);
 
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Date lastUpdate = new Date(prefs.getLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,0));
+        query.whereGreaterThanOrEqualTo("updatedAt",lastUpdate);
+
+
         query.findInBackground(new FindCallback<TaskItem>() {
             @Override
             public void done(List<TaskItem> taskItems, ParseException e) {
@@ -112,17 +202,18 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO, taskItem.getAssignedTo());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,taskItem.getDone());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_TITLE,taskItem.getTitle());
-                        try {
-                            values.put(DoUIContract.TaskItemEntry.COLUMN_IMAGE,taskItem.getImage().getData());
-                        } catch (Exception e1) {
-                            e1.printStackTrace();
-                        }
+//                        try {
+//                            values.put(DoUIContract.TaskItemEntry.COLUMN_IMAGE,taskItem.getImage().getData());
+//                        } catch (Exception e1) {
+//                            e1.printStackTrace();
+//                        }
                         values.put(DoUIContract.TaskItemEntry.COLUMN_DATE,taskItem.getDate().getTime());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,taskItem.getReminderTime().getTime());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER,taskItem.getReminder());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,taskItem.getNotifyWhenDone());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,taskItem.getItemDescription());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
+                        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,false);
 
                         allValues.add(values);
 
@@ -130,10 +221,18 @@ public class DoUIParseSyncAdapter {
 
                     int rows = context.getContentResolver().bulkInsert(DoUIContract.TaskItemEntry.CONTENT_URI,
                             allValues.toArray(new ContentValues[allValues.size()]));
-                    Log.v(LOG_TAG,"Entered "+rows+" rows");
-                    notifyOnDone(context,DoUIContract.PATH_TASKS);
+                    Log.v(LOG_TAG, "Entered " + rows + " rows");
+
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                    editor.putLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,new Date().getTime());
+                    editor.commit();
 
                 }
+                else {
+                    Log.d(LOG_TAG,e.toString());
+                }
+                notifyOnDone(context,DoUIContract.PATH_TASKS);
+
             }
         });
 
@@ -220,9 +319,7 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT,item.getUrgent());
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());
 
-
                         allValues.add(values);
-
                     }
 
                     int rows = context.getContentResolver().bulkInsert(DoUIContract.ShoppingItemEntry.CONTENT_URI,

@@ -3,7 +3,9 @@ package com.ymgeva.doui.tasks;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
@@ -16,17 +18,20 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.Utility;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
+import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -34,6 +39,7 @@ import java.util.Date;
 public class EditTaskActivity extends ActionBarActivity {
 
     public static final String IS_NEW_TASK_SETTING = "mode_setting";
+    private EditTaskFragment mFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +47,9 @@ public class EditTaskActivity extends ActionBarActivity {
         setContentView(R.layout.activity_edit_task);
 
         if (savedInstanceState == null) {
+            mFragment = new EditTaskFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new EditTaskFragment())
+                    .add(R.id.container, mFragment)
                     .commit();
         }
     }
@@ -63,8 +70,11 @@ public class EditTaskActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.action_save) {
+            mFragment.onSaveClicked();
+        }
+        else if (id == R.id.action_cancel) {
+            finish();
         }
 
         return super.onOptionsItemSelected(item);
@@ -83,6 +93,7 @@ public class EditTaskActivity extends ActionBarActivity {
         private long mDate;
         private long mReminderTime;
         private String mAssignedTo;
+        private String mCreatedBy;
 
         private EditText mTitleView;
         private TextView mDateView;
@@ -93,9 +104,6 @@ public class EditTaskActivity extends ActionBarActivity {
         private CheckBox mReminderView;
         private CheckBox mNotifyWhenDoneView;
         private TextView mReminderTimeView;
-
-        private TimePickerDialog mReminderTimePicker;
-        private Spinner mSpinner;
 
         public EditTaskFragment() {
         }
@@ -130,9 +138,9 @@ public class EditTaskActivity extends ActionBarActivity {
                 mDescriptionView.setText(intent.getStringExtra(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION));
 
 
-                String createdBy = intent.getStringExtra(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY);
-                isCreatedByMe = (createdBy.equals(DoUIParseSyncAdapter.getInstance().getUserId()));
-                mCreatedByView.setImageResource(Utility.imageResourseByUser(createdBy));
+                mCreatedBy = intent.getStringExtra(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY);
+                isCreatedByMe = (mCreatedBy.equals(DoUIParseSyncAdapter.getInstance().getUserId()));
+                mCreatedByView.setImageResource(Utility.imageResourseByUser(mCreatedBy));
                 mAssignedTo = intent.getStringExtra(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO);
                 mAssignedToView.setImageResource(Utility.imageResourseByUser(mAssignedTo));
 
@@ -150,11 +158,13 @@ public class EditTaskActivity extends ActionBarActivity {
                 mNotifyWhenDoneView.setChecked(intent.getBooleanExtra(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,false));
             }
             else {
+                mAssignedTo = null;
                 mDate = new Date().getTime();
                 mReminderView.setChecked(false);
                 mReminderTimeView.setVisibility(View.INVISIBLE);
                 mNotifyWhenDoneView.setChecked(false);
-                mCreatedByView.setImageResource(Utility.imageResourseByUser(DoUIParseSyncAdapter.getInstance().getUserId()));
+                mCreatedBy = DoUIParseSyncAdapter.getInstance().getUserId();
+                mCreatedByView.setImageResource(Utility.imageResourseByUser(mCreatedBy));
             }
 
 
@@ -235,23 +245,19 @@ public class EditTaskActivity extends ActionBarActivity {
                     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
                     dialogBuilder.setView(spinnerView);
 
-                    mSpinner = (Spinner)spinnerView.findViewById(R.id.spinner_dialog);
-                    mSpinner.setAdapter(new IUSPinnerAdapter(getActivity(), R.layout.i_u_spinner,new String[]{"I","U"}));
-                    mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    IUSPinnerAdapter adapter = new IUSPinnerAdapter(getActivity(),R.layout.i_u_spinner_dialog);
+                    adapter.add("I");
+                    adapter.add("U");
+
+                    dialogBuilder.setAdapter(adapter,new DialogInterface.OnClickListener() {
                         @Override
-                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        public void onClick(DialogInterface dialogInterface, int i) {
                             if (i == 0) {
                                 mAssignedTo = DoUIParseSyncAdapter.getInstance().getUserId();
                             } else {
                                 mAssignedTo = DoUIParseSyncAdapter.getInstance().getPartnerId();
                             }
                             mAssignedToView.setImageResource(Utility.imageResourseByUser(mAssignedTo));
-
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> adapterView) {
-
                         }
                     });
 
@@ -262,7 +268,18 @@ public class EditTaskActivity extends ActionBarActivity {
                 }
             });
 
-
+            mReminderView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    if (b) {
+                        mReminderTimeView.setVisibility(View.VISIBLE);
+                        mReminderTimeView.performClick();
+                    }
+                    else {
+                        mReminderTimeView.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
 
             return rootView;
         }
@@ -272,8 +289,8 @@ public class EditTaskActivity extends ActionBarActivity {
             int [] texts = {R.string.i_string,R.string.u_string};
             int [] icons = {R.drawable.i_image,R.drawable.u_image};
 
-            public IUSPinnerAdapter(Context context, int resource, String[] objects) {
-                super(context, resource, objects);
+            public IUSPinnerAdapter(Context context, int resource) {
+                super(context, resource);
             }
 
 
@@ -302,6 +319,54 @@ public class EditTaskActivity extends ActionBarActivity {
 
             }
         }
+
+        public void onSaveClicked() {
+
+            //check that must fields are full
+            StringBuilder sb = new StringBuilder();
+            if (mTitleView.getText() == null) sb.append("Title, ");
+            if (mDateView.getText() == null) sb.append("Date, ");
+            if (mTimeView.getText() == null) sb.append("Time, ");
+            if (mAssignedTo == null) sb.append("Task Assignee");
+
+            if (sb.length() > 0) {
+                sb.append("!");
+                Toast.makeText(getActivity(),"Following details must not be empty: "+sb.toString(),Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            else {
+                ContentValues values = new ContentValues();
+                values.put(DoUIContract.TaskItemEntry.COLUMN_DATE,mDate);
+                values.put(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,mAssignedTo);
+                values.put(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,mCreatedBy);
+                values.put(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,mNotifyWhenDoneView.isChecked());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,false);
+                values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,true);
+                if (mReminderView.isChecked()) {
+                    values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER,true);
+                    values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,mReminderTime);
+                }
+                else {
+                    values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER,false);
+                }
+                values.put(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,mDescriptionView.getText().toString());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_TITLE,mTitleView.getText().toString());
+
+                if (isNewTaskMode) {
+                    values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, DoUIContract.NOT_SYNCED);
+                    getActivity().getContentResolver().insert(DoUIContract.TaskItemEntry.CONTENT_URI,values);
+                }
+                else {
+                    values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, mParseId);
+                    values.put(DoUIContract.TaskItemEntry._ID,mId);
+                    getActivity().getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+mId,null);
+                }
+                DoUISyncAdapter.syncImmediately(getActivity().getApplicationContext(), DoUIContract.TaskItemEntry.TABLE_NAME);
+                getActivity().finish();
+            }
+        }
+
 
     }
 
