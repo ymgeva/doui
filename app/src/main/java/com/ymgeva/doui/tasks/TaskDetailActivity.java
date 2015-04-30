@@ -72,12 +72,8 @@ public class TaskDetailActivity extends ActionBarActivity implements TaskDetailF
     }
 
     @Override
-    public void onDoneClicked(long _id) {
-        ContentValues values = new ContentValues();
-        values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,true);
-        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,true);
-        getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+_id,null);
-        DoUISyncAdapter.syncImmediately(getApplicationContext(), DoUIContract.TaskItemEntry.TABLE_NAME);
+    public void onDoneClicked(long _id,boolean isDone) {
+        DoUISyncAdapter.setTaskDone(getApplicationContext(),_id,isDone);
         finish();
     }
 }

@@ -5,6 +5,7 @@ import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
@@ -12,8 +13,10 @@ import android.content.SyncResult;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.ymgeva.doui.R;
+import com.ymgeva.doui.Utility;
 import com.ymgeva.doui.data.DoUIContentProvider;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
@@ -25,6 +28,8 @@ import java.util.Date;
  * Created by Yoav on 4/16/15.
  */
 public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
+
+    private static final String LOG_TAG = DoUISyncAdapter.class.getSimpleName();
 
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
@@ -121,5 +126,22 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
         DoUISyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount, context.getString(R.string.content_authority), true);
         syncImmediately(context,null);
+    }
+
+    public static void setTaskDone(Context context,long taskId,boolean isDone) {
+
+        ContentValues values = new ContentValues();
+        values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,isDone);
+        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,true);
+
+        int updated = context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+taskId,null);
+        if (updated > 0) {
+            DoUISyncAdapter.syncImmediately(context, DoUIContract.PATH_TASKS);
+        }
+        Log.d(LOG_TAG, "setTaskDone " + Utility.formatSuccess(updated));
+
+//        Uri uri = DoUIContract.TaskItemEntry.buildTaskUri(taskId);
+//        Cursor cursor = getContentResolver().query(uri,new String[]{DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE},null,null,null);
+
     }
 }

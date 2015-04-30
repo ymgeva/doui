@@ -14,6 +14,8 @@ import android.view.MenuItem;
 
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.data.DoUIContract;
+import com.ymgeva.doui.notifications.NotificationsService;
+import com.ymgeva.doui.shopping.ShoppingListActivity;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 public class TaskListActivity extends ActionBarActivity
@@ -25,7 +27,7 @@ public class TaskListActivity extends ActionBarActivity
      */
     private boolean mTwoPane;
     private SwipeRefreshLayout mSwipeLayout;
-    private TaskListReceiver mReciever;
+    private TaskListReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +56,12 @@ public class TaskListActivity extends ActionBarActivity
             }
         });
 
-        mReciever = new TaskListReceiver();
-        // TODO: If exposing deep links into your app, handle intents here.
+        mReceiver = new TaskListReceiver();
+
+        Intent intent = getIntent();
+        if (NotificationsService.ACTION_SHOW_TASK.equals(intent.getAction())) {
+            onItemSelected(intent.getLongExtra(NotificationsService.PARAM_ID,0));
+        }
     }
 
     @Override
@@ -75,6 +81,11 @@ public class TaskListActivity extends ActionBarActivity
         if (id == R.id.action_add) {
             Intent intent = new Intent(this,EditTaskActivity.class);
             intent.putExtra(EditTaskActivity.IS_NEW_TASK_SETTING,true);
+            startActivity(intent);
+            return true;
+        }
+        if (id == R.id.action_shopping) {
+            Intent intent = new Intent(this,ShoppingListActivity.class);
             startActivity(intent);
             return true;
         }
@@ -107,27 +118,23 @@ public class TaskListActivity extends ActionBarActivity
     @Override
     public void onResume() {
         super.onResume();
-        registerReceiver(mReciever,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_TASKS));
+        registerReceiver(mReceiver,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_TASKS));
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceiver(mReciever);
+        unregisterReceiver(mReceiver);
     }
 
     @Override
-    public void onDoneClicked(long _id) {
-        taskDone(_id);
+    public void onDoneClicked(long _id,boolean isDone) {
+        taskDone(_id,isDone);
     }
 
-    private void taskDone(long _id) {
-        ContentValues values = new ContentValues();
-        values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,true);
-        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,true);
-        getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+_id,null);
-        DoUISyncAdapter.syncImmediately(getApplicationContext(), DoUIContract.TaskItemEntry.TABLE_NAME);
+    private void taskDone(long _id,boolean isDone) {
+        DoUISyncAdapter.setTaskDone(this,_id,isDone);
     }
 
     public class TaskListReceiver extends BroadcastReceiver {

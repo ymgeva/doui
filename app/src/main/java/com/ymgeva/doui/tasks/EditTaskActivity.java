@@ -362,7 +362,7 @@ public class EditTaskActivity extends ActionBarActivity {
                     values.put(DoUIContract.TaskItemEntry._ID,mId);
                     getActivity().getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+mId,null);
                 }
-                DoUISyncAdapter.syncImmediately(getActivity().getApplicationContext(), DoUIContract.TaskItemEntry.TABLE_NAME);
+                DoUISyncAdapter.syncImmediately(getActivity().getApplicationContext(), DoUIContract.PATH_TASKS);
                 getActivity().finish();
             }
         }

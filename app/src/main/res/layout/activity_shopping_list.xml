@@ -1,4 +1,13 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/container"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    tools:context="com.ymgeva.doui.shopping.ShoppingListActivity" tools:ignore="MergeRootFrame" />
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/shopping_swipe_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/shopping_list"
+        android:name="com.ymgeva.doui.shopping.ShoppingListFragment" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp" tools:context="com.ymgeva.doui.shopping.ShoppingListActivity"
+        tools:layout="@android:layout/list_content" />
+</android.support.v4.widget.SwipeRefreshLayout>

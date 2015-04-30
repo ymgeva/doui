@@ -77,6 +77,16 @@ public class TaskListAdapter extends CursorAdapter  {
             viewHolder.mTimeTextView.setPaintFlags(viewHolder.mTimeTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             viewHolder.mTimeTextView.setTextColor(context.getResources().getColor(R.color.primary_text_disabled_material_light));
         }
+        else {
+            viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
+            viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+
+            viewHolder.mDateTextView.setPaintFlags(viewHolder.mDateTextView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
+            viewHolder.mDateTextView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+
+            viewHolder.mTimeTextView.setPaintFlags(viewHolder.mTimeTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            viewHolder.mTimeTextView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+        }
 
     }
 }

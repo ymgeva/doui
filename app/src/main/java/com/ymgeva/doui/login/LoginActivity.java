@@ -8,8 +8,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.parse.FunctionCallback;
 import com.parse.GetCallback;
 import com.parse.LogInCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -18,11 +20,15 @@ import com.parse.SignUpCallback;
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.tasks.TaskListActivity;
 
+import java.util.HashMap;
+import java.util.List;
+
 
 public class LoginActivity extends ActionBarActivity implements LoginFragement.LoginFragmentInteractionListener,
         SignUpFragment.SignUpFragmentInteractionListener,ConnectToPartnerFragment.ConnectToPartnerFragmentInteractionListener {
 
     private static final String LOG_TAG = LoginActivity.class.getSimpleName();
+    private ParseUser mPartner;
 
 
     @Override
@@ -81,7 +87,7 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     }
 
     @Override
-    public void onCreateAccountClicked(String email, String password, String passwordConfirmed, String name) {
+    public void onCreateAccountClicked(final String email, String password, String passwordConfirmed, String name) {
         ParseUser user = new ParseUser();
         user.setUsername(email);
         user.setPassword(password);
@@ -92,7 +98,7 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    showConnectToPartnerScreen();
+                    showConnectToPartnerScreen(email);
                 }
                 else {
                     Toast.makeText(getApplicationContext(),e.toString(),Toast.LENGTH_SHORT).show();
@@ -101,65 +107,72 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
         });
     }
 
-    private void showConnectToPartnerScreen() {
+    private void showConnectToPartnerScreen(String email) {
+
+        ConnectToPartnerFragment fragment = new ConnectToPartnerFragment();
+
+        ParseQuery<ParseUser> query = ParseUser.getQuery();
+        query.whereEqualTo(ConnectToPartnerFragment.PARTNER_EMAIL,email);
+        try {
+            List<ParseUser> users = query.find();
+            if (users != null && users.size() > 0) {
+                mPartner = users.get(0);
+                Bundle bundle = new Bundle();
+                bundle.putString(ConnectToPartnerFragment.PARTNER_EMAIL,mPartner.getEmail());
+                bundle.putString(ConnectToPartnerFragment.PARTNER_NAME,mPartner.getString("name"));
+                bundle.putString(ConnectToPartnerFragment.SHARED_PASSWORD,mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
+                fragment.setArguments(bundle);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.container, new ConnectToPartnerFragment())
+                .replace(R.id.container, fragment)
+                .addToBackStack(null)
                 .commit();
     }
 
-    @Override
-    public void onConnectClicked(final String email, final String sharedPassword) {
 
-        final ParseUser currentUser = ParseUser.getCurrentUser();
-        currentUser.put("partner_email",email);
-        currentUser.put("shared_password",sharedPassword);
-
-        ParseQuery<ParseUser> query = ParseUser.getQuery();
-        query.whereEqualTo("email",email);
-        query.getFirstInBackground(new GetCallback<ParseUser>() {
-            @Override
-            public void done(ParseUser partnerUser, ParseException e) {
-                boolean success = false;
-                if (e != null) {
-                    //do nifty stuff
-                }
-                else if (partnerUser == null) {
-                    Toast.makeText(getApplicationContext(),R.string.email_sent_to_partner,Toast.LENGTH_LONG);
-                }
-                else if (partnerUser.get("partner") != null) {
-                    Toast.makeText(getApplicationContext(),R.string.partner_already_connected,Toast.LENGTH_LONG);
-                }
-                else {
-                    String partnerEmail = (String) partnerUser.get("partner_email");
-                    String partnerSharedPassword = (String)partnerUser.get("shared_password");
-                    if (partnerEmail == null || partnerSharedPassword == null) {
-                        Toast.makeText(getApplicationContext(),R.string.email_sent_to_partner,Toast.LENGTH_LONG);
-                    }
-                    else if (partnerEmail.contentEquals(email) && partnerSharedPassword.contentEquals(partnerSharedPassword)) {
-                        currentUser.put("partner",partnerUser);
-                        currentUser.put("partnerId",partnerUser.getObjectId());
-                        partnerUser.put("partner", currentUser);
-                        partnerUser.put("partnerId",currentUser.getObjectId());
-                        saveUser(partnerUser);
-                        success = true;
-                        Toast.makeText(getApplicationContext(),R.string.conneced_to+(String)partnerUser.get("name"),Toast.LENGTH_LONG);
-
-                    }
-                    else {
-                        Toast.makeText(getApplicationContext(),R.string.partner_not_matching,Toast.LENGTH_LONG);
-                    }
-                }
-                saveUser(currentUser);
-                if (success) {
-                    goToMainScreen();
-                }
-            }
-        });
-
-    }
 
     @Override
     public void onSkipClicked() {
+        goToMainScreen();
+    }
+
+    @Override
+    public void connectPartners() {
+        ParseUser me = ParseUser.getCurrentUser();
+        me.put(ConnectToPartnerFragment.PARTNER_EMAIL,mPartner.getEmail());
+        me.put(ConnectToPartnerFragment.SHARED_PASSWORD,mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
+        me.put("partner_id",mPartner.getObjectId());
+        saveUser(me);
+
+        mPartner.put("partner_id",me.getObjectId());
+        saveUser(mPartner);
+
+        goToMainScreen();
+    }
+
+    @Override
+    public void sendPasswordToPartner(String email, String password) {
+        ParseUser me = ParseUser.getCurrentUser();
+        me.put(ConnectToPartnerFragment.PARTNER_EMAIL,email);
+        me.put(ConnectToPartnerFragment.SHARED_PASSWORD,password);
+        saveUser(me);
+
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("to",email);
+        map.put("from",me.getEmail());
+        map.put("name",me.getString("name"));
+        map.put("shared_password",password);
+        ParseCloud.callFunctionInBackground("SendEmail", map, new FunctionCallback<String>() {
+            public void done(String result, ParseException e) {
+                if (e == null) {
+                    // result is "Hello world!"
+                }
+            }
+        });
         goToMainScreen();
     }
 

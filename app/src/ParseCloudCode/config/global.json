@@ -1,0 +1,14 @@
+{
+  "global": {
+    "parseVersion": "1.4.2"
+  },
+  "applications": {
+    "_default": {
+      "link": "doui"
+    },
+    "doui": {
+      "applicationId": "FcgtxMp25GF3Y9NPOTm7CcOAABAkhTdNmTHnPL1X",
+      "masterKey": "oen0eI6mUm3U8Lm64lZtXAlBskAQhMwIPVlt45oJ"
+    }
+  }
+}

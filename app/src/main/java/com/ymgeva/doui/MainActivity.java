@@ -8,6 +8,7 @@ import android.view.MenuItem;
 
 import com.parse.ParseUser;
 import com.ymgeva.doui.login.LoginActivity;
+import com.ymgeva.doui.notifications.NotificationsService;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 import com.ymgeva.doui.tasks.TaskListActivity;
 
@@ -27,6 +28,20 @@ public class MainActivity extends ActionBarActivity {
         }
         else {
             intent = new Intent(getApplicationContext(),TaskListActivity.class);
+
+            Intent notificationIntent = getIntent();
+            String action = notificationIntent.getAction();
+            if (NotificationsService.ACTION_SHOW_TASK.equals(action)) {
+                long taskId = notificationIntent.getLongExtra(NotificationsService.PARAM_ID,0);
+                Intent dismissIntent = new Intent(this,NotificationsService.class);
+                dismissIntent.setAction(NotificationsService.ACTION_DISMISS);
+                dismissIntent.putExtra(NotificationsService.PARAM_ID, taskId);
+                startService(dismissIntent);
+                if (taskId > 0) {
+                    intent.setAction(NotificationsService.ACTION_SHOW_TASK);
+                    intent.putExtra(NotificationsService.PARAM_ID,taskId);
+                }
+            }
         }
         startActivity(intent);
         finish();

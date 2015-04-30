@@ -20,6 +20,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.data.DoUIContract;
+import com.ymgeva.doui.notifications.NotificationsService;
 import com.ymgeva.doui.parse.items.GeneralItem;
 import com.ymgeva.doui.parse.items.ShoppingItem;
 import com.ymgeva.doui.parse.items.TaskItem;
@@ -50,18 +51,38 @@ public class DoUIParseSyncAdapter {
             DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE
     };
 
-    public static final int COL_ID = 0;
-    public static final int COL_PARSE_ID = 1;
-    public static final int COL_ASSIGNED_TO = 2;
-    public static final int COL_DATE = 3;
-    public static final int COL_TITLE = 4;
-    public static final int COL_DONE = 5;
-    public static final int COL_TEXT = 6;
-    public static final int COL_REMINDER = 7;
-    public static final int COL_REMINDER_TIME = 8;
-    public static final int COL_IMAGE = 9;
-    public static final int COL_CREATED_BY = 10;
-    public static final int COL_NOTIFY_WHEN_DONE = 11;
+    public static final int COL_TASKS_ID = 0;
+    public static final int COL_TASKS_PARSE_ID = 1;
+    public static final int COL_TASKS_ASSIGNED_TO = 2;
+    public static final int COL_TASKS_DATE = 3;
+    public static final int COL_TASKS_TITLE = 4;
+    public static final int COL_TASKS_DONE = 5;
+    public static final int COL_TASKS_TEXT = 6;
+    public static final int COL_TASKS_REMINDER = 7;
+    public static final int COL_TASKS_REMINDER_TIME = 8;
+    public static final int COL_TASKS_IMAGE = 9;
+    public static final int COL_TASKS_CREATED_BY = 10;
+    public static final int COL_TASKS_NOTIFY_WHEN_DONE = 11;
+
+    public static final String[] SHOPPING_COLUMNS = {
+            DoUIContract.ShoppingItemEntry._ID,
+            DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,
+            DoUIContract.ShoppingItemEntry.COLUMN_TITLE,
+            DoUIContract.ShoppingItemEntry.COLUMN_DONE,
+            DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,
+            DoUIContract.ShoppingItemEntry.COLUMN_URGENT,
+            DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY,
+    };
+
+    public static final int COL_SHOPPING_ID = 0;
+    public static final int COL_SHOPPING_PARSE_ID = 1;
+    public static final int COL_SHOPPING_TITLE = 2;
+    public static final int COL_SHOPPING_DONE = 3;
+    public static final int COL_SHOPPING_QUANTITY = 4;
+    public static final int COL_SHOPPING_URGENT = 5;
+    public static final int COL_SHOPPING_CREATED_BY =6;
+
+
 
     private final String LOG_TAG = DoUIParseSyncAdapter.class.getSimpleName();
 
@@ -124,20 +145,20 @@ public class DoUIParseSyncAdapter {
         final List<TaskItem> taskItems = new ArrayList<>();
         do {
             TaskItem taskItem = new TaskItem();
-            String parseId = cursor.getString(COL_PARSE_ID);
+            String parseId = cursor.getString(COL_TASKS_PARSE_ID);
             if (!parseId.equals(DoUIContract.NOT_SYNCED)) {
                 taskItem.setObjectId(parseId);
             }
-            taskItem.setAssignedTo(cursor.getString(COL_ASSIGNED_TO));
-            taskItem.setCreatedBY(cursor.getString(COL_CREATED_BY));
-            taskItem.setDate(new Date(cursor.getLong(COL_DATE)));
-            taskItem.setDone(cursor.getInt(COL_DONE) > 0);
-            taskItem.setItemDescription(cursor.getString(COL_TEXT));
-            taskItem.setNotifyWhenDone(cursor.getInt(COL_NOTIFY_WHEN_DONE) > 0);
-            taskItem.setReminder(cursor.getInt(COL_REMINDER) > 0);
-            taskItem.setReminderTime(new Date(cursor.getLong(COL_REMINDER_TIME)));
-            taskItem.setTitle(cursor.getString(COL_TITLE));
-            taskItem.put("LOCAL_ID",cursor.getLong(COL_ID));
+            taskItem.setAssignedTo(cursor.getString(COL_TASKS_ASSIGNED_TO));
+            taskItem.setCreatedBY(cursor.getString(COL_TASKS_CREATED_BY));
+            taskItem.setDate(new Date(cursor.getLong(COL_TASKS_DATE)));
+            taskItem.setDone(cursor.getInt(COL_TASKS_DONE) > 0);
+            taskItem.setItemDescription(cursor.getString(COL_TASKS_TEXT));
+            taskItem.setNotifyWhenDone(cursor.getInt(COL_TASKS_NOTIFY_WHEN_DONE) > 0);
+            taskItem.setReminder(cursor.getInt(COL_TASKS_REMINDER) > 0);
+            taskItem.setReminderTime(new Date(cursor.getLong(COL_TASKS_REMINDER_TIME)));
+            taskItem.setTitle(cursor.getString(COL_TASKS_TITLE));
+            taskItem.put("LOCAL_ID",cursor.getLong(COL_TASKS_ID));
 
             taskItems.add(taskItem);
         } while (cursor.moveToNext());
@@ -183,12 +204,13 @@ public class DoUIParseSyncAdapter {
         queries.add(queryAssignedTo);
 
         ParseQuery<TaskItem> query = ParseQuery.or(queries);
-        query.whereGreaterThanOrEqualTo(DoUIContract.TaskItemEntry.COLUMN_DATE,today);
-        query.whereNotEqualTo(DoUIContract.TaskItemEntry.COLUMN_DONE,true);
+        query.whereGreaterThanOrEqualTo(DoUIContract.TaskItemEntry.COLUMN_DATE, today);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        Date lastUpdate = new Date(prefs.getLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,0));
-        query.whereGreaterThanOrEqualTo("updatedAt",lastUpdate);
+        long lastUpdate = prefs.getLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,0);
+//        if (lastUpdate > 0) {
+//            query.whereGreaterThanOrEqualTo("updatedAt",new Date(lastUpdate));
+//        }
 
 
         query.findInBackground(new FindCallback<TaskItem>() {
@@ -223,6 +245,8 @@ public class DoUIParseSyncAdapter {
                             allValues.toArray(new ContentValues[allValues.size()]));
                     Log.v(LOG_TAG, "Entered " + rows + " rows");
 
+
+
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
                     editor.putLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,new Date().getTime());
                     editor.commit();
@@ -232,6 +256,7 @@ public class DoUIParseSyncAdapter {
                     Log.d(LOG_TAG,e.toString());
                 }
                 notifyOnDone(context,DoUIContract.PATH_TASKS);
+                NotificationsService.startWithAction(context,NotificationsService.ACTION_REMINDER);
 
             }
         });
@@ -287,6 +312,57 @@ public class DoUIParseSyncAdapter {
     }
 
     public void syncShoppingItems(final Context context) {
+        Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI, SHOPPING_COLUMNS, DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY + " = 1", null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            Log.v(LOG_TAG,"Has unsaved shopping items, will upload first");
+            uploadShoppingItems(context, cursor);
+        }
+        else {
+            downloadShoppingItems(context);
+        }
+
+    }
+
+    private void uploadShoppingItems(final Context context, Cursor cursor) {
+        final List<ShoppingItem> shoppingItems = new ArrayList<>();
+        do {
+            ShoppingItem shoppingItem = new ShoppingItem();
+            String parseId = cursor.getString(COL_SHOPPING_PARSE_ID);
+            if (!parseId.equals(DoUIContract.NOT_SYNCED)) {
+                shoppingItem.setObjectId(parseId);
+            }
+            shoppingItem.setCreatedBY(cursor.getString(COL_SHOPPING_CREATED_BY));
+            shoppingItem.setDone(cursor.getInt(COL_SHOPPING_DONE) > 0);
+            shoppingItem.setUrgent(cursor.getInt(COL_SHOPPING_URGENT) > 0);
+            shoppingItem.setQuantity(cursor.getInt(COL_SHOPPING_QUANTITY));
+            shoppingItem.setTitle(cursor.getString(COL_SHOPPING_TITLE));
+            shoppingItem.put("LOCAL_ID",cursor.getLong(COL_SHOPPING_ID));
+
+            shoppingItems.add(shoppingItem);
+        } while (cursor.moveToNext());
+
+        ParseObject.saveAllInBackground(shoppingItems, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    Log.v(LOG_TAG, shoppingItems.size() + " saved to Parse");
+                    for (ShoppingItem shoppingItem : shoppingItems) {
+                        ContentValues values = new ContentValues();
+                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,shoppingItem.getObjectId());
+                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY,false);
+                        context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                                values,"_ID = "+shoppingItem.getLong("LOCAL_ID"),
+                                null);
+                    }
+                    downloadShoppingItems(context);
+                } else {
+                    Log.e(LOG_TAG, "Failed to save shopping items, will not download.", e);
+                }
+            }
+        });
+    }
+
+    private void downloadShoppingItems(final Context context) {
 
         String me = ParseUser.getCurrentUser().getObjectId();
         String partner = ParseUser.getCurrentUser().getString("partner_id");
@@ -303,7 +379,11 @@ public class DoUIParseSyncAdapter {
         queries.add(queryCreatedByPartner);
 
         ParseQuery<ShoppingItem> query = ParseQuery.or(queries);
-        query.whereNotEqualTo(DoUIContract.ShoppingItemEntry.COLUMN_DONE,true);
+        //query.whereNotEqualTo(DoUIContract.ShoppingItemEntry.COLUMN_DONE,true);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Date lastUpdate = new Date(prefs.getLong(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME,0));
+        query.whereGreaterThanOrEqualTo("updatedAt",lastUpdate);
 
         query.findInBackground(new FindCallback<ShoppingItem>() {
             @Override
@@ -325,6 +405,11 @@ public class DoUIParseSyncAdapter {
                     int rows = context.getContentResolver().bulkInsert(DoUIContract.ShoppingItemEntry.CONTENT_URI,
                             allValues.toArray(new ContentValues[allValues.size()]));
                     Log.v(LOG_TAG,"Entered "+rows+" rows");
+
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                    editor.putLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,new Date().getTime());
+                    editor.commit();
+
                     notifyOnDone(context,DoUIContract.PATH_SHOPPING);
                 }
             }

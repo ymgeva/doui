@@ -68,7 +68,7 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
          * Callback for when an item has been selected.
          */
         public void onItemSelected(long id);
-        public void onDoneClicked(long _id);
+        public void onDoneClicked(long _id,boolean isDone);
     }
 
     public TaskListFragment() {
@@ -105,11 +105,11 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
         mListView.setOnTouchListener(new SwipeGestureListener(getActivity()) {
             @Override
             public void swipeRight(int x,int y) {
-                swipeDone(x,y);
+                swipeDone(x,y,true);
             }
             @Override
             public void swipeLeft(int x,int y) {
-                swipeDone(x,y);
+                swipeDone(x,y,false);
             }
 
         });
@@ -167,11 +167,11 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
         }
     }
 
-    private void swipeDone(int x,int y) {
+    private void swipeDone(int x,int y,boolean isDone) {
         int position = mListView.pointToPosition(x,y);
         Cursor cursor = mAdapter.getCursor();
         if (cursor != null && cursor.moveToPosition(position) && mCallbacks != null) {
-            mCallbacks.onDoneClicked(cursor.getLong(COL_ID));
+            mCallbacks.onDoneClicked(cursor.getLong(COL_ID),isDone);
             mActivatedPosition = position;
         }
     }
@@ -222,31 +222,4 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoaderReset(Loader<Cursor> loader) {
 
     }
-//
-//
-//
-//    class SwipeGestureListener extends GestureDetector.SimpleOnGestureListener {
-//
-//        static final int SWIPE_MIN_DISTANCE = 120;
-//        static final int SWIPE_MAX_OFF_PATH = 250;
-//        static final int SWIPE_THRESHOLD_VELOCITY = 200;
-//
-//        @Override
-//        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-//            try {
-//                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
-//                    return false;
-//                }
-//               if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-//
-//                    CharSequence txt = "Right to Left Swipe";
-//                } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-//                    CharSequence txt = "Left to Right Swipe";
-//                }
-//            } catch (Exception e) {
-//                // nothing
-//            }
-//            return false;
-//        }
-//    }
 }

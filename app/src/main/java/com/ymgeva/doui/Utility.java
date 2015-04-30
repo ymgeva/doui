@@ -72,4 +72,8 @@ public class Utility {
             return text;
         }
     }
+
+    public static String formatSuccess (int s) {
+        return s > 0 ? "Successful" : "Failed";
+    }
 }

@@ -100,4 +100,13 @@
     <string name="i_string">Me</string>
     <string name="u_string">You</string>
     <string name="title_activity_shopping_list">Shopping List</string>
+
+    <string name="enter_password_from_mail">Please enter %s\'s email and the password that he emailed you</string>
+    <string name="enter_password_for_partner">Please enter the email of the person you want to share your tasks with.\nThe shared password you enter here will be emailed to your partner to fill when he signs up</string>
+    <string name="connect_to_partner_fields_empty_warning">Please fill both fields!</string>
+    <string name="connect_to_partner_details_dont_match">The email and shared password do not match the ones %s entered, please recheck your email</string>
+    <string name="action_shopping">Grocery List</string>
+    <string name="urgent">Urgent</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="snooze">Snooze</string>
 </resources>

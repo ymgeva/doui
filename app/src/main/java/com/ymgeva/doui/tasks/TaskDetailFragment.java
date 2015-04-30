@@ -81,7 +81,7 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     private DetailsFragmentListener mListener;
 
     public interface DetailsFragmentListener {
-        public void onDoneClicked(long _id);
+        public void onDoneClicked(long _id,boolean isDone);
     }
 
 
@@ -142,7 +142,7 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
             openEditActivity();
         }
         else if (id == R.id.action_done) {
-            mListener.onDoneClicked(mId);
+            mListener.onDoneClicked(mId,true);
         }
 
         return super.onOptionsItemSelected(item);
