@@ -130,8 +130,9 @@ public class NotificationsService extends IntentService {
     }
 
     private void notifyTaskDone(String parseId) {
-        Uri uri = DoUIContract.TaskItemEntry.buildTaskParseUri(parseId);
-        Cursor cursor = getContentResolver().query(uri,TASK_COLUMNS,null,null,null);
+        Cursor cursor = getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI,
+                TASK_COLUMNS,
+                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",new String[]{parseId},null);
         if (cursor != null && cursor.moveToFirst()) {
             long taskId = cursor.getLong(COL_ID);
             NotificationCompat.Builder mBuilder =

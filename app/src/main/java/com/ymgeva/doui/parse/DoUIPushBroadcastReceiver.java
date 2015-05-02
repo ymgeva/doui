@@ -2,9 +2,14 @@ package com.ymgeva.doui.parse;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import com.parse.ParsePushBroadcastReceiver;
+import com.ymgeva.doui.R;
+import com.ymgeva.doui.data.DoUIContract;
+import com.ymgeva.doui.notifications.NotificationsService;
+import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,6 +60,18 @@ public class DoUIPushBroadcastReceiver extends ParsePushBroadcastReceiver {
                 DoUIParseSyncAdapter.updatePartner(objectId);
                 break;
             }
+            case PUSH_CODE_NOTIFY_DONE:
+            case PUSH_CODE_URGENT_TASK: {
+                SyncDoneReceiver receiver = new SyncDoneReceiver(objectId,pushCode);
+                context.getApplicationContext().registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_TASKS));
+                DoUISyncAdapter.syncImmediately(context,DoUIContract.PATH_TASKS);
+            }
+            case PUSH_CODE_URGENT_SHOPPING: {
+                SyncDoneReceiver receiver = new SyncDoneReceiver(objectId,pushCode);
+                context.getApplicationContext().registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_SHOPPING));
+                DoUISyncAdapter.syncImmediately(context,DoUIContract.PATH_SHOPPING);
+            }
+
             default:{
                 Log.d(LOG_TAG,"onPushReceive: unknown push code"+pushCode);
             }

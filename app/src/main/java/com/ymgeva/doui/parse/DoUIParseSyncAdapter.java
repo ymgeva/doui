@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -38,7 +39,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Yoav on 4/16/15.
@@ -93,7 +97,7 @@ public class DoUIParseSyncAdapter {
 
 
 
-    private final String LOG_TAG = DoUIParseSyncAdapter.class.getSimpleName();
+    private static final String LOG_TAG = DoUIParseSyncAdapter.class.getSimpleName();
 
     public static final String USER_ID = "user_id";
     public static final String PARTNER_ID = "partner_id";
@@ -105,6 +109,8 @@ public class DoUIParseSyncAdapter {
         }
         return instance;
     }
+
+    private Map<String,Integer> mSyncDoneActions;
 
     private DoUIParseSyncAdapter() {
     }
@@ -192,10 +198,10 @@ public class DoUIParseSyncAdapter {
                     Log.v(LOG_TAG, taskItems.size() + " saved to Parse");
                     for (TaskItem taskItem : taskItems) {
                         ContentValues values = new ContentValues();
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,false);
+                        values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, taskItem.getObjectId());
+                        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY, false);
                         context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
-                                values,"_ID = "+taskItem.getLong("LOCAL_ID"),
+                                values, "_ID = " + taskItem.getLong("LOCAL_ID"),
                                 null);
                     }
                     downloadTasks(context);
@@ -313,11 +319,11 @@ public class DoUIParseSyncAdapter {
                         ContentValues values = new ContentValues();
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_CREATED_BY, item.getCreatedBy());
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_ASSIGNED_TO, item.getAssignedTo());
-                        values.put(DoUIContract.GeneralItemEntry.COLUMN_DONE,item.getDone());
-                        values.put(DoUIContract.GeneralItemEntry.COLUMN_NOTIFY_WHEN_DONE,item.getNotifyWhenDone());
+                        values.put(DoUIContract.GeneralItemEntry.COLUMN_DONE, item.getDone());
+                        values.put(DoUIContract.GeneralItemEntry.COLUMN_NOTIFY_WHEN_DONE, item.getNotifyWhenDone());
                         values.put(DoUIContract.GeneralItemEntry.COLUMN_TITLE, item.getTitle());
-                        values.put(DoUIContract.GeneralItemEntry.COLUMN_PARSE_ID,item.getObjectId());
-                        values.put(DoUIContract.GeneralItemEntry.COLUMN_URGENT,item.getUrgent());
+                        values.put(DoUIContract.GeneralItemEntry.COLUMN_PARSE_ID, item.getObjectId());
+                        values.put(DoUIContract.GeneralItemEntry.COLUMN_URGENT, item.getUrgent());
 
                         allValues.add(values);
 
@@ -325,8 +331,8 @@ public class DoUIParseSyncAdapter {
 
                     int rows = context.getContentResolver().bulkInsert(DoUIContract.GeneralItemEntry.CONTENT_URI,
                             allValues.toArray(new ContentValues[allValues.size()]));
-                    Log.v(LOG_TAG,"Entered "+rows+" rows");
-                    notifyOnDone(context,DoUIContract.PATH_GENERAL);
+                    Log.v(LOG_TAG, "Entered " + rows + " rows");
+                    notifyOnDone(context, DoUIContract.PATH_GENERAL);
 
                 }
             }
@@ -370,10 +376,10 @@ public class DoUIParseSyncAdapter {
                     Log.v(LOG_TAG, shoppingItems.size() + " saved to Parse");
                     for (ShoppingItem shoppingItem : shoppingItems) {
                         ContentValues values = new ContentValues();
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,shoppingItem.getObjectId());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY,false);
+                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID, shoppingItem.getObjectId());
+                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY, false);
                         context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                                values,"_ID = "+shoppingItem.getLong("LOCAL_ID"),
+                                values, "_ID = " + shoppingItem.getLong("LOCAL_ID"),
                                 null);
                     }
                     downloadShoppingItems(context);
@@ -442,7 +448,6 @@ public class DoUIParseSyncAdapter {
        Intent intent = new Intent();
        intent.setAction(R.string.broadcast_sync_done+"."+filter);
        context.sendBroadcast(intent);
-
     }
 
     public static void updateInstallation() {
@@ -495,48 +500,10 @@ public class DoUIParseSyncAdapter {
 
     }
 
-    public static void registerOnSyncDoneAReceiver(Context context,String taskId,int action) {
-        Intent intent = new Intent();
-        intent.setAction(R.string.broadcast_sync_done+taskId);
-        intent.putExtra(NotificationsService.PARAM_TASK_PARSE_ID,taskId);
-        intent.putExtra(DoUIPushBroadcastReceiver.PUSH_CODE,action);
-        context.sendBroadcast(intent);
+    public void registerOnSyncDoneAReceiver(Context context, String taskId,int action, String path) {
+
+        SyncDoneReceiver receiver = new SyncDoneReceiver(taskId,action);
+        context.registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+path));
     }
-
-    public class SyncDoneReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            context.unregisterReceiver(this);
-
-            Intent notificationIntent = new Intent(context,NotificationsService.class);
-            notificationIntent.putExtra(NotificationsService.PARAM_TASK_PARSE_ID,intent.getStringExtra(NotificationsService.PARAM_TASK_PARSE_ID));
-
-            int pushCode = intent.getIntExtra(DoUIPushBroadcastReceiver.PUSH_CODE,0);
-
-            switch (pushCode) {
-                case DoUIPushBroadcastReceiver.PUSH_CODE_NOTIFY_DONE: {
-                    notificationIntent.setAction(NotificationsService.ACTION_NOTIFY_TASK_DONE);
-                    break;
-                }
-                case DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_SHOPPING: {
-                    notificationIntent.setAction(NotificationsService.ACTION_URGENT_SHOPPING);
-                    break;
-                }
-                case DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_TASK: {
-                    notificationIntent.setAction(NotificationsService.ACTION_URGENT_TASK);
-                    break;
-                }
-                default: {
-                    Log.d(LOG_TAG,"push code does not match");
-                    return;
-                }
-            }
-
-            context.startService(notificationIntent);
-        }
-    }
-
 
 }

@@ -157,7 +157,7 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
                 DoUIParseSyncAdapter.getUserId().equals(cursor.getString(1)) &&
                 DoUIParseSyncAdapter.getPartnerId().equals(cursor.getString(2))) {
 
-            DoUIParseSyncAdapter.sendPush(DoUIPushBroadcastReceiver.PUSH_CODE_NOTIFY_DONE,cursor.getString(1));
+            DoUIParseSyncAdapter.sendPush(DoUIPushBroadcastReceiver.PUSH_CODE_NOTIFY_DONE,cursor.getString(3));
         }
     }
 }

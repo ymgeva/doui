@@ -77,10 +77,6 @@ public class DoUIContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildTaskParseUri(String parseId) {
-            return Uri.withAppendedPath(CONTENT_URI,Uri.encode(parseId));
-        }
-
     }
 
     public static final class ShoppingItemEntry implements BaseColumns {
@@ -110,9 +106,6 @@ public class DoUIContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildShoppingItemParseUri(String parseId) {
-            return Uri.withAppendedPath(CONTENT_URI,Uri.encode(parseId));
-        }
     }
 
     public static final class GeneralItemEntry implements BaseColumns {
