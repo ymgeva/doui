@@ -30,8 +30,8 @@ public class Utility {
             return R.drawable.image_who;
         }
 
-        String me = DoUIParseSyncAdapter.getInstance().getUserId();
-        String partner = DoUIParseSyncAdapter.getInstance().getPartnerId();
+        String me = DoUIParseSyncAdapter.getUserId();
+        String partner = DoUIParseSyncAdapter.getPartnerId();
 
         if (user.equals(me)) {
             return R.drawable.i_image;

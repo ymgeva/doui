@@ -52,7 +52,7 @@ public class ConnectToPartnerFragment extends Fragment {
             mPartnerEmail = bundle.getString(PARTNER_EMAIL);
             mSharedPassword = bundle.getString(SHARED_PASSWORD);
 
-            mExplanationView.setText(getActivity().getString(R.string.enter_password_from_mail,mPartnerEmail));
+            mExplanationView.setText(getActivity().getString(R.string.enter_password_from_mail,mPartnerName));
         }
         else {
             isPartnerPending = false;

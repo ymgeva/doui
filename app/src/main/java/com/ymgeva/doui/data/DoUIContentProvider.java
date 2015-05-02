@@ -21,8 +21,10 @@ public class DoUIContentProvider extends ContentProvider {
 
     private static final int TASKS = 100;
     private static final int TASK_BY_ID = 101;
+    private static final int TASK_BY_PARSE_ID = 102;
     private static final int SHOPPING = 200;
     private static final int SHOPPING_ITEM_BY_ID = 201;
+    private static final int SHOPPING_ITEM_BY_PARSE_ID = 202;
     private static final int GENERAL = 300;
     private static final int GENERAL_ITEM_BY_ID = 301;
 
@@ -33,8 +35,10 @@ public class DoUIContentProvider extends ContentProvider {
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, DoUIContract.PATH_TASKS, TASKS);
         matcher.addURI(authority, DoUIContract.PATH_TASKS+"/*", TASK_BY_ID);
+        matcher.addURI(authority, DoUIContract.PATH_TASKS+"/*", TASK_BY_PARSE_ID);
         matcher.addURI(authority, DoUIContract.PATH_SHOPPING,SHOPPING);
         matcher.addURI(authority, DoUIContract.PATH_SHOPPING+"/*", SHOPPING_ITEM_BY_ID);
+        matcher.addURI(authority, DoUIContract.PATH_SHOPPING+"/*", SHOPPING_ITEM_BY_PARSE_ID);
         matcher.addURI(authority, DoUIContract.PATH_GENERAL,GENERAL);
         matcher.addURI(authority, DoUIContract.PATH_GENERAL+"/*", GENERAL_ITEM_BY_ID);
 
@@ -48,6 +52,18 @@ public class DoUIContentProvider extends ContentProvider {
         return builder.query(mOpenHelper.getReadableDatabase(),
                 projection,
                 DoUIContract.TaskItemEntry._ID + " = '" + ContentUris.parseId(uri) + "'",
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    private Cursor queryByParseId(SQLiteQueryBuilder builder,Uri uri, String[] projection, String tableName) {
+        builder.setTables(tableName);
+        return builder.query(mOpenHelper.getReadableDatabase(),
+                projection,
+                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID + " = '" + uri.getPath() + "'",
                 null,
                 null,
                 null,
@@ -75,12 +91,20 @@ public class DoUIContentProvider extends ContentProvider {
                 cursor = queryById(builder,uri,projection, DoUIContract.TaskItemEntry.TABLE_NAME);
                 break;
             }
+            case TASK_BY_PARSE_ID: {
+                cursor = queryByParseId(builder,uri,projection, DoUIContract.TaskItemEntry.TABLE_NAME);
+                break;
+            }
             case SHOPPING: {
                 builder.setTables(DoUIContract.ShoppingItemEntry.TABLE_NAME);
                 break;
             }
             case SHOPPING_ITEM_BY_ID: {
                 cursor = queryById(builder,uri,projection, DoUIContract.ShoppingItemEntry.TABLE_NAME);
+                break;
+            }
+            case SHOPPING_ITEM_BY_PARSE_ID: {
+                cursor = queryByParseId(builder,uri,projection, DoUIContract.ShoppingItemEntry.TABLE_NAME);
                 break;
             }
             case GENERAL: {
@@ -116,9 +140,11 @@ public class DoUIContentProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case TASKS:return DoUIContract.TaskItemEntry.CONTENT_TYPE;
-            case TASK_BY_ID:return DoUIContract.TaskItemEntry.CONTENT_ITEM_TYPE;
+            case TASK_BY_ID: return DoUIContract.TaskItemEntry.CONTENT_ITEM_TYPE;
+            case TASK_BY_PARSE_ID: return DoUIContract.TaskItemEntry.CONTENT_ITEM_TYPE;
             case SHOPPING:return DoUIContract.ShoppingItemEntry.CONTENT_TYPE;
             case SHOPPING_ITEM_BY_ID:return DoUIContract.ShoppingItemEntry.CONTENT_ITEM_TYPE;
+            case SHOPPING_ITEM_BY_PARSE_ID:return DoUIContract.ShoppingItemEntry.CONTENT_ITEM_TYPE;
             case GENERAL:return DoUIContract.GeneralItemEntry.CONTENT_TYPE;
             case GENERAL_ITEM_BY_ID:return DoUIContract.GeneralItemEntry.CONTENT_ITEM_TYPE;
 

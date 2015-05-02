@@ -109,19 +109,6 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        Bundle arguments = getArguments();
-        if (arguments != null && arguments.containsKey(TASK_ID)) {
-            long newId = arguments.getLong(TASK_ID);
-            if (mTaskId != newId) {
-                mTaskId = newId;
-                getLoaderManager().restartLoader(LOADER_TAG, null, this);
-            }
-        }
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putLong(TASK_ID, mTaskId);
         super.onSaveInstanceState(outState);

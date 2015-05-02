@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -20,6 +22,8 @@ import com.ymgeva.doui.Utility;
 import com.ymgeva.doui.data.DoUIContentProvider;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
+import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
+import com.ymgeva.doui.parse.items.TaskItem;
 
 import java.net.URI;
 import java.util.Date;
@@ -140,8 +144,20 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
         }
         Log.d(LOG_TAG, "setTaskDone " + Utility.formatSuccess(updated));
 
-//        Uri uri = DoUIContract.TaskItemEntry.buildTaskUri(taskId);
-//        Cursor cursor = getContentResolver().query(uri,new String[]{DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE},null,null,null);
+        Uri uri = DoUIContract.TaskItemEntry.buildTaskUri(taskId);
+        final String [] projection = {
+                DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,
+                DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,
+                DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,
+                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,
+        };
+        Cursor cursor = context.getContentResolver().query(uri,projection,null,null,null);
+        if (cursor != null && cursor.moveToFirst() &&
+                cursor.getInt(0) > 0 &&
+                DoUIParseSyncAdapter.getUserId().equals(cursor.getString(1)) &&
+                DoUIParseSyncAdapter.getPartnerId().equals(cursor.getString(2))) {
 
+            DoUIParseSyncAdapter.sendPush(DoUIPushBroadcastReceiver.PUSH_CODE_NOTIFY_DONE,cursor.getString(1));
+        }
     }
 }

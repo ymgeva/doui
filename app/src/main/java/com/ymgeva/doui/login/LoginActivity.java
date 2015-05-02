@@ -2,6 +2,7 @@ package com.ymgeva.doui.login;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,11 +14,15 @@ import com.parse.GetCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 import com.ymgeva.doui.R;
+import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
+import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
+import com.ymgeva.doui.sync.DoUISyncAdapter;
 import com.ymgeva.doui.tasks.TaskListActivity;
 
 import java.util.HashMap;
@@ -30,15 +35,26 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     private static final String LOG_TAG = LoginActivity.class.getSimpleName();
     private ParseUser mPartner;
 
+    public static String LOGIN_MODE = "loginMode";
+    public static int LOGIN_MODE_NEW_USER = 100;
+    public static int LOGIN_MODE_CONNECT_TO_PARTNER = 200;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new LoginFragement())
-                    .commit();
+            int loginMode = getIntent().getIntExtra(LOGIN_MODE,LOGIN_MODE_NEW_USER);
+            if (loginMode == LOGIN_MODE_NEW_USER) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.container, new LoginFragement())
+                        .commit();
+            }
+            else {
+                showConnectToPartnerScreen(ParseUser.getCurrentUser().getEmail());
+            }
         }
     }
 
@@ -66,11 +82,17 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     }
 
     @Override
-    public void onLoginClicked(String email, String password) {
+    public void onLoginClicked(final String email, String password) {
         ParseUser.logInInBackground(email,password, new LogInCallback() {
             public void done(ParseUser user, ParseException e) {
                 if (user != null) {
-                    goToMainScreen();
+                    DoUIParseSyncAdapter.updateInstallation();
+                    if (user.getString(DoUIParseSyncAdapter.PARTNER_ID) != null) {
+                        goToMainScreen();
+                    }
+                    else {
+                        showConnectToPartnerScreen(email);
+                    }
                 } else {
                     Log.e(LOG_TAG,"Login failed with exception: "+e.toString());
                 }
@@ -89,16 +111,18 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     @Override
     public void onCreateAccountClicked(final String email, String password, String passwordConfirmed, String name) {
         ParseUser user = new ParseUser();
-        user.setUsername(email);
+        user.setUsername(email.toLowerCase());
         user.setPassword(password);
-        user.setEmail(email);
+        user.setEmail(email.toLowerCase());
         user.put("name",name);
 
         user.signUpInBackground(new SignUpCallback() {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    showConnectToPartnerScreen(email);
+                    DoUIParseSyncAdapter.updateInstallation();
+
+                    showConnectToPartnerScreen(email.toLowerCase());
                 }
                 else {
                     Toast.makeText(getApplicationContext(),e.toString(),Toast.LENGTH_SHORT).show();
@@ -145,11 +169,17 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
         ParseUser me = ParseUser.getCurrentUser();
         me.put(ConnectToPartnerFragment.PARTNER_EMAIL,mPartner.getEmail());
         me.put(ConnectToPartnerFragment.SHARED_PASSWORD,mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
-        me.put("partner_id",mPartner.getObjectId());
-        saveUser(me);
+        me.put(DoUIParseSyncAdapter.PARTNER_ID, mPartner.getObjectId());
+        me.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e != null) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
-        mPartner.put("partner_id",me.getObjectId());
-        saveUser(mPartner);
+        DoUIParseSyncAdapter.sendPush(DoUIPushBroadcastReceiver.PUSH_CODE_UPDATE_PARTNER,mPartner.getObjectId(),me.getObjectId());
 
         goToMainScreen();
     }
@@ -157,9 +187,16 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     @Override
     public void sendPasswordToPartner(String email, String password) {
         ParseUser me = ParseUser.getCurrentUser();
-        me.put(ConnectToPartnerFragment.PARTNER_EMAIL,email);
+        me.put(ConnectToPartnerFragment.PARTNER_EMAIL,email.toLowerCase());
         me.put(ConnectToPartnerFragment.SHARED_PASSWORD,password);
-        saveUser(me);
+        me.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e != null) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         HashMap<String,Object> map = new HashMap<>();
         map.put("to",email);
@@ -168,21 +205,12 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
         map.put("shared_password",password);
         ParseCloud.callFunctionInBackground("SendEmail", map, new FunctionCallback<String>() {
             public void done(String result, ParseException e) {
-                if (e == null) {
-                    // result is "Hello world!"
+                if (e != null) {
+                    e.printStackTrace();
                 }
             }
         });
         goToMainScreen();
-    }
-
-    private void saveUser(ParseUser user){
-        user.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-
-            }
-        });
     }
 
     private void goToMainScreen() {

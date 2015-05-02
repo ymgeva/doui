@@ -3,6 +3,7 @@ package com.ymgeva.doui;
 import android.app.Application;
 
 import com.parse.Parse;
+import com.parse.PushService;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 
 /**

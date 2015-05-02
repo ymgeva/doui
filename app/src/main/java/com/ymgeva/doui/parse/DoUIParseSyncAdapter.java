@@ -1,5 +1,6 @@
 package com.ymgeva.doui.parse;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -11,14 +12,21 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.parse.FindCallback;
+import com.parse.FunctionCallback;
+import com.parse.GetCallback;
 import com.parse.Parse;
 import com.parse.ParseAnonymousUtils;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.ymgeva.doui.MainActivity;
 import com.ymgeva.doui.R;
+import com.ymgeva.doui.data.DbHelper;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.notifications.NotificationsService;
 import com.ymgeva.doui.parse.items.GeneralItem;
@@ -29,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -86,6 +95,9 @@ public class DoUIParseSyncAdapter {
 
     private final String LOG_TAG = DoUIParseSyncAdapter.class.getSimpleName();
 
+    public static final String USER_ID = "user_id";
+    public static final String PARTNER_ID = "partner_id";
+
     private static DoUIParseSyncAdapter instance;
     public static DoUIParseSyncAdapter getInstance() {
         if (instance == null) {
@@ -104,15 +116,25 @@ public class DoUIParseSyncAdapter {
         ParseObject.registerSubclass(ShoppingItem.class);
 
         Parse.initialize(context, "FcgtxMp25GF3Y9NPOTm7CcOAABAkhTdNmTHnPL1X", "BJcZI0Bxor39HE1GrQDo7suJhjlOXImSMINYBDyC");
+        ParsePush.subscribeInBackground("", new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    Log.d("com.parse.push", "successfully subscribed to the broadcast channel.");
+                } else {
+                    Log.e("com.parse.push", "failed to subscribe for push", e);
+                }
+            }
+        });
 
     }
 
-    public String getUserId() {
+    public static String getUserId() {
         return ParseUser.getCurrentUser().getObjectId();
     }
 
-    public String getPartnerId() {
-        return ParseUser.getCurrentUser().getString("partner_id");
+    public static String getPartnerId() {
+        return ParseUser.getCurrentUser().getString(PARTNER_ID);
     }
 
     public boolean canSyncToParse(Context context) {
@@ -196,7 +218,7 @@ public class DoUIParseSyncAdapter {
         queryCreatedBy.whereEqualTo(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,me);
 
         ParseQuery<TaskItem> queryAssignedTo = TaskItem.getQuery();
-        queryAssignedTo.whereEqualTo(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY,me);
+        queryAssignedTo.whereEqualTo(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO,me);
 
 
         List<ParseQuery<TaskItem>> queries = new ArrayList<>();
@@ -365,7 +387,7 @@ public class DoUIParseSyncAdapter {
     private void downloadShoppingItems(final Context context) {
 
         String me = ParseUser.getCurrentUser().getObjectId();
-        String partner = ParseUser.getCurrentUser().getString("partner_id");
+        String partner = ParseUser.getCurrentUser().getString(PARTNER_ID);
 
         ParseQuery<ShoppingItem> queryCreatedByMe = ShoppingItem.getQuery();
         queryCreatedByMe.whereEqualTo(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY,me);
@@ -422,4 +444,99 @@ public class DoUIParseSyncAdapter {
        context.sendBroadcast(intent);
 
     }
+
+    public static void updateInstallation() {
+
+        ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        installation.put(DoUIParseSyncAdapter.USER_ID,currentUser.getObjectId());
+        installation.saveInBackground();
+    }
+
+    public static void updatePartner(String partnerId) {
+
+        final ParseUser me = ParseUser.getCurrentUser();
+        me.put(PARTNER_ID, partnerId);
+        me.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e != null) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public static void sendPush(int pushCode,String objectId) {
+        sendPush(pushCode,getPartnerId(),objectId);
+    }
+
+    public static void sendPush(int pushCode,String userId, String objectId) {
+
+        HashMap<String,Object> map = new HashMap<>();
+        map.put(DoUIPushBroadcastReceiver.USER_ID,userId);
+        map.put(DoUIPushBroadcastReceiver.OBJECT_ID,objectId);
+        map.put(DoUIPushBroadcastReceiver.PUSH_CODE,Integer.toString(pushCode));
+        ParseCloud.callFunctionInBackground("SendPushCode", map, new FunctionCallback<String>() {
+            public void done(String result, ParseException e) {
+                if (e != null) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+
+    public static void logout(Context context) {
+        ParseUser.logOut();
+        DbHelper helper = new DbHelper(context);
+        helper.onUpgrade(helper.getWritableDatabase(),0,0);
+
+
+    }
+
+    public static void registerOnSyncDoneAReceiver(Context context,String taskId,int action) {
+        Intent intent = new Intent();
+        intent.setAction(R.string.broadcast_sync_done+taskId);
+        intent.putExtra(NotificationsService.PARAM_TASK_PARSE_ID,taskId);
+        intent.putExtra(DoUIPushBroadcastReceiver.PUSH_CODE,action);
+        context.sendBroadcast(intent);
+    }
+
+    public class SyncDoneReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            context.unregisterReceiver(this);
+
+            Intent notificationIntent = new Intent(context,NotificationsService.class);
+            notificationIntent.putExtra(NotificationsService.PARAM_TASK_PARSE_ID,intent.getStringExtra(NotificationsService.PARAM_TASK_PARSE_ID));
+
+            int pushCode = intent.getIntExtra(DoUIPushBroadcastReceiver.PUSH_CODE,0);
+
+            switch (pushCode) {
+                case DoUIPushBroadcastReceiver.PUSH_CODE_NOTIFY_DONE: {
+                    notificationIntent.setAction(NotificationsService.ACTION_NOTIFY_TASK_DONE);
+                    break;
+                }
+                case DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_SHOPPING: {
+                    notificationIntent.setAction(NotificationsService.ACTION_URGENT_SHOPPING);
+                    break;
+                }
+                case DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_TASK: {
+                    notificationIntent.setAction(NotificationsService.ACTION_URGENT_TASK);
+                    break;
+                }
+                default: {
+                    Log.d(LOG_TAG,"push code does not match");
+                    return;
+                }
+            }
+
+            context.startService(notificationIntent);
+        }
+    }
+
+
 }

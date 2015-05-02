@@ -61,8 +61,13 @@ public class NotificationsService extends IntentService {
     public static final String ACTION_DISMISS = "com.ymgeva.doui.notifications.action.dismiss";
     public static final String ACTION_SNOOZE = "com.ymgeva.doui.notifications.action.snooze";
     public static final String ACTION_DONE = "com.ymgeva.doui.notifications.action.done";
+    public static final String ACTION_NOTIFY_TASK_DONE = "com.ymgeva.doui.notifications.action.notify_task_done";
+    public static final String ACTION_URGENT_TASK = "com.ymgeva.doui.notifications.action.urgent_task";
+    public static final String ACTION_URGENT_SHOPPING = "com.ymgeva.doui.notifications.action.urgent_task";
+
 
     public static final String PARAM_ID = "com.ymgeva.doui.notifications.extra.PARAM_ID";
+    public static final String PARAM_TASK_PARSE_ID = "task_parse_id";
 
     private static final int TASKS_TAG_OFFSET = 300000;
 
@@ -88,6 +93,7 @@ public class NotificationsService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
             final long taskId = intent.getLongExtra(PARAM_ID,0);
+            final String parseId = intent.getStringExtra(PARAM_TASK_PARSE_ID);
 
             Log.d(LOG_TAG,"onHandleIntent. taskId = "+taskId);
 
@@ -105,7 +111,60 @@ public class NotificationsService extends IntentService {
             } else if (ACTION_DISMISS.equals(action)) {
                 dismissReminder(taskId);
                 cancelNotification(this, (int) taskId);
+            } else if (ACTION_NOTIFY_TASK_DONE.equals(action)) {
+                notifyTaskDone(parseId);
+            } else if (ACTION_URGENT_TASK.equals(action)) {
+                notifyUrgentTask(parseId);
+            } else if (ACTION_URGENT_SHOPPING.equals(action)) {
+                notifyUrgentSopping(parseId);
             }
+        }
+    }
+
+    private void notifyUrgentSopping(String parseId) {
+
+    }
+
+    private void notifyUrgentTask(String parseId) {
+
+    }
+
+    private void notifyTaskDone(String parseId) {
+        Uri uri = DoUIContract.TaskItemEntry.buildTaskParseUri(parseId);
+        Cursor cursor = getContentResolver().query(uri,TASK_COLUMNS,null,null,null);
+        if (cursor != null && cursor.moveToFirst()) {
+            long taskId = cursor.getLong(COL_ID);
+            NotificationCompat.Builder mBuilder =
+                    new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(getString(R.string.task_done_notification,cursor.getString(COL_TITLE)))
+                            .setContentText(cursor.getString(COL_TITLE))
+                            .setDefaults(Notification.DEFAULT_ALL);
+
+            Intent resultIntent = new Intent(this, MainActivity.class);
+            resultIntent.setAction(ACTION_SHOW_TASK);
+            resultIntent.putExtra(PARAM_ID,taskId);
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addNextIntent(resultIntent);
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(
+                            0,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
+            mBuilder.setContentIntent(resultPendingIntent);
+
+            Intent dismissIntent = new Intent(this, NotificationsService.class);
+            dismissIntent.setAction(ACTION_DISMISS);
+            dismissIntent.putExtra(PARAM_ID,taskId);
+            PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            mBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(cursor.getString(COL_TITLE)))
+                    .addAction (R.drawable.ic_stat_dismiss,getString(R.string.dismiss), piDismiss);
+
+            NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.notify(TASKS_TAG_OFFSET+(int)taskId, mBuilder.build());
         }
     }
 

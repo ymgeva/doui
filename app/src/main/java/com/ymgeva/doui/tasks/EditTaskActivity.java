@@ -139,7 +139,7 @@ public class EditTaskActivity extends ActionBarActivity {
 
 
                 mCreatedBy = intent.getStringExtra(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY);
-                isCreatedByMe = (mCreatedBy.equals(DoUIParseSyncAdapter.getInstance().getUserId()));
+                isCreatedByMe = (mCreatedBy.equals(DoUIParseSyncAdapter.getUserId()));
                 mCreatedByView.setImageResource(Utility.imageResourseByUser(mCreatedBy));
                 mAssignedTo = intent.getStringExtra(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO);
                 mAssignedToView.setImageResource(Utility.imageResourseByUser(mAssignedTo));
@@ -163,7 +163,7 @@ public class EditTaskActivity extends ActionBarActivity {
                 mReminderView.setChecked(false);
                 mReminderTimeView.setVisibility(View.INVISIBLE);
                 mNotifyWhenDoneView.setChecked(false);
-                mCreatedBy = DoUIParseSyncAdapter.getInstance().getUserId();
+                mCreatedBy = DoUIParseSyncAdapter.getUserId();
                 mCreatedByView.setImageResource(Utility.imageResourseByUser(mCreatedBy));
             }
 
@@ -253,9 +253,9 @@ public class EditTaskActivity extends ActionBarActivity {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             if (i == 0) {
-                                mAssignedTo = DoUIParseSyncAdapter.getInstance().getUserId();
+                                mAssignedTo = DoUIParseSyncAdapter.getUserId();
                             } else {
-                                mAssignedTo = DoUIParseSyncAdapter.getInstance().getPartnerId();
+                                mAssignedTo = DoUIParseSyncAdapter.getPartnerId();
                             }
                             mAssignedToView.setImageResource(Utility.imageResourseByUser(mAssignedTo));
                         }

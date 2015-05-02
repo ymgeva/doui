@@ -12,9 +12,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.ymgeva.doui.MainActivity;
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.data.DoUIContract;
+import com.ymgeva.doui.login.LoginActivity;
 import com.ymgeva.doui.notifications.NotificationsService;
+import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 import com.ymgeva.doui.shopping.ShoppingListActivity;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 
@@ -88,6 +91,17 @@ public class TaskListActivity extends ActionBarActivity
             Intent intent = new Intent(this,ShoppingListActivity.class);
             startActivity(intent);
             return true;
+        }
+        if (id == R.id.action_logout) {
+            DoUIParseSyncAdapter.logout(this);
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        if (id == R.id.action_connect_to_partner) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.putExtra(LoginActivity.LOGIN_MODE,LoginActivity.LOGIN_MODE_CONNECT_TO_PARTNER);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }

@@ -53,7 +53,7 @@ public class TaskListAdapter extends CursorAdapter  {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
 
         String assignedTo = cursor.getString(TaskListFragment.COL_ASSIGNED_TO);
-        if (assignedTo.equals(DoUIParseSyncAdapter.getInstance().getUserId())) {
+        if (assignedTo.equals(DoUIParseSyncAdapter.getUserId())) {
             viewHolder.mImageView.setImageResource(R.drawable.i_image);
         }
         else {
