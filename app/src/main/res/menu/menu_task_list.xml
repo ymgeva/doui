@@ -7,6 +7,14 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         app:showAsAction="never" />
+    <item android:id="@+id/action_logout"
+        android:title="@string/action_logout"
+        android:orderInCategory="200"
+        app:showAsAction="never" />
+    <item android:id="@+id/action_connect_to_partner"
+        android:title="@string/action_connnect_to_partner"
+        android:orderInCategory="300"
+        app:showAsAction="never" />
     <item android:id="@+id/action_add"
         android:title="@string/action_add"
         android:icon="@drawable/ic_action_new"

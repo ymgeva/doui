@@ -28,3 +28,30 @@ Parse.Cloud.define("SendEmail", function(request,response) {
   		}
 	});
 });
+
+Parse.Cloud.define("SendPushCode", function(request,response) {
+
+	console.log(request.params);
+
+	var query = new Parse.Query(Parse.Installation);
+	query.equalTo('user_id',request.params["user_id"]);
+
+	Parse.Push.send({
+		where: query,
+		data: {
+			alert: "yada yada"+request.params["push_code"],
+			push_code:request.params["push_code"],
+			object_id:request.params["object_id"]
+		}		
+	}, {
+		success: function(){
+			console.log("sent succssfully");
+			response.success("Push Sent!");
+		},
+		error: function(error) {
+			console.log(error);
+			response.error(error);
+		}
+	}
+	);
+});

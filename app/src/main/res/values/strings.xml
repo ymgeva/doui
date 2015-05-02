@@ -109,4 +109,7 @@
     <string name="urgent">Urgent</string>
     <string name="dismiss">Dismiss</string>
     <string name="snooze">Snooze</string>
+    <string name="action_logout">Logout</string>
+    <string name="action_connnect_to_partner">Connect to Partner</string>
+    <string name="task_done_notification">Your partner has done: %s</string>
 </resources>
