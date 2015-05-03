@@ -127,7 +127,47 @@ public class NotificationsService extends IntentService {
 
     private void notifyUrgentTask(String parseId) {
 
+        Cursor cursor = getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI,
+                TASK_COLUMNS,
+                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",new String[]{parseId},null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            long taskId = cursor.getLong(COL_ID);
+            NotificationCompat.Builder mBuilder =
+                    new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(getString(R.string.urgent_task_notification,cursor.getString(COL_TITLE)))
+                            .setContentText(cursor.getString(COL_TITLE))
+                            .setDefaults(Notification.DEFAULT_ALL);
+
+            Intent resultIntent = new Intent(this, MainActivity.class);
+            resultIntent.setAction(ACTION_SHOW_TASK);
+            resultIntent.putExtra(PARAM_ID,taskId);
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addNextIntent(resultIntent);
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(
+                            0,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
+            mBuilder.setContentIntent(resultPendingIntent);
+
+            Intent dismissIntent = new Intent(this, NotificationsService.class);
+            dismissIntent.setAction(ACTION_DISMISS);
+            dismissIntent.putExtra(PARAM_ID,taskId);
+            PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            mBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(cursor.getString(COL_TITLE)))
+                    .addAction (R.drawable.ic_stat_dismiss,getString(R.string.dismiss), piDismiss);
+
+            NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.notify(TASKS_TAG_OFFSET+(int)taskId, mBuilder.build());
+        }
     }
+
+
 
     private void notifyTaskDone(String parseId) {
         Cursor cursor = getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI,

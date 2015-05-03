@@ -31,6 +31,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME + " INTEGER, " +
                 DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO + " TEXT NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
+                DoUIContract.TaskItemEntry.COLUMN_LOCAL_ID + " TEXT NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_IMAGE + " BLOB, " +
                 DoUIContract.TaskItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
                 DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
@@ -44,6 +45,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY + " INTEGER, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_URGENT + " INTEGER NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
+                DoUIContract.ShoppingItemEntry.COLUMN_LOCAL_ID + " TEXT NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
                 "UNIQUE (" + DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID +") ON CONFLICT REPLACE"+
@@ -58,6 +60,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.GeneralItemEntry.COLUMN_NOTIFY_WHEN_DONE + " INTEGER NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
+                DoUIContract.GeneralItemEntry.COLUMN_LOCAL_ID + " TEXT NOT NULL, " +
                 DoUIContract.GeneralItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
                 "UNIQUE (" + DoUIContract.GeneralItemEntry.COLUMN_PARSE_ID +") ON CONFLICT REPLACE"+
                 " );";

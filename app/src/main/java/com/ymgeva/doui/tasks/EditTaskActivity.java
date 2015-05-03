@@ -3,10 +3,13 @@ package com.ymgeva.doui.tasks;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -31,6 +34,8 @@ import com.ymgeva.doui.R;
 import com.ymgeva.doui.Utility;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
+import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
+import com.ymgeva.doui.parse.SyncDoneReceiver;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 import java.util.Calendar;
@@ -355,14 +360,29 @@ public class EditTaskActivity extends ActionBarActivity {
 
                 if (isNewTaskMode) {
                     values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, DoUIContract.NOT_SYNCED);
-                    getActivity().getContentResolver().insert(DoUIContract.TaskItemEntry.CONTENT_URI,values);
+                    Uri newRow = getActivity().getContentResolver().insert(DoUIContract.TaskItemEntry.CONTENT_URI,values);
+                    mId = ContentUris.parseId(newRow);
                 }
                 else {
                     values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, mParseId);
                     values.put(DoUIContract.TaskItemEntry._ID,mId);
                     getActivity().getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,values,"_ID = "+mId,null);
                 }
+
+                //notify on tasks that happen today
+                if (Utility.isDateToday(mDate)) {
+                    if (isNewTaskMode) {
+                        SyncDoneReceiver receiver = new SyncDoneReceiver(null, DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_TASK,mId);
+                        getActivity().getApplicationContext().registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_TASKS));
+
+                    }
+                    else {
+                        DoUIParseSyncAdapter.sendPush(DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_TASK,mParseId);
+                    }
+                }
                 DoUISyncAdapter.syncImmediately(getActivity().getApplicationContext(), DoUIContract.PATH_TASKS);
+
+
                 getActivity().finish();
             }
         }

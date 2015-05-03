@@ -6,6 +6,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by Yoav on 4/20/15.
@@ -72,6 +74,18 @@ public class Utility {
             return text;
         }
     }
+
+    public static boolean isDateToday(long date) {
+        Calendar nowCal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date(date));
+
+        //a task
+        return nowCal.get(Calendar.ERA) == cal.get(Calendar.ERA) &&
+               nowCal.get(Calendar.YEAR) == cal.get(Calendar.YEAR) &&
+               nowCal.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR);
+    }
+
 
     public static String formatSuccess (int s) {
         return s > 0 ? "Successful" : "Failed";

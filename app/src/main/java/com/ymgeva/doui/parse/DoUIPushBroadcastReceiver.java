@@ -62,14 +62,16 @@ public class DoUIPushBroadcastReceiver extends ParsePushBroadcastReceiver {
             }
             case PUSH_CODE_NOTIFY_DONE:
             case PUSH_CODE_URGENT_TASK: {
-                SyncDoneReceiver receiver = new SyncDoneReceiver(objectId,pushCode);
+                SyncDoneReceiver receiver = new SyncDoneReceiver(objectId,pushCode,0);
                 context.getApplicationContext().registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_TASKS));
                 DoUISyncAdapter.syncImmediately(context,DoUIContract.PATH_TASKS);
+                break;
             }
             case PUSH_CODE_URGENT_SHOPPING: {
-                SyncDoneReceiver receiver = new SyncDoneReceiver(objectId,pushCode);
+                SyncDoneReceiver receiver = new SyncDoneReceiver(objectId,pushCode,0);
                 context.getApplicationContext().registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+DoUIContract.PATH_SHOPPING));
                 DoUISyncAdapter.syncImmediately(context,DoUIContract.PATH_SHOPPING);
+                break;
             }
 
             default:{

@@ -244,7 +244,9 @@ public class DoUIParseSyncAdapter {
         query.findInBackground(new FindCallback<TaskItem>() {
             @Override
             public void done(List<TaskItem> taskItems, ParseException e) {
-                List<ContentValues> allValues = new ArrayList<ContentValues>();
+                List<ContentValues> newValues = new ArrayList<ContentValues>();
+                int updated = 0;
+
                 if (e == null) {
                     for (final TaskItem taskItem : taskItems) {
                         ContentValues values = new ContentValues();
@@ -265,12 +267,25 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
                         values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,false);
 
-                        allValues.add(values);
+                        Cursor cursor = context.getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI,
+                                TASK_COLUMNS,
+                                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",
+                                new String[]{taskItem.getObjectId()},null);
+                        if (cursor != null && cursor.moveToFirst()) {
+                            updated += context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
+                                    values,
+                                    DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",
+                                    new String[]{taskItem.getObjectId()});
 
+                        }
+                        else {
+                            newValues.add(values);
+                        }
                     }
+                    Log.v(LOG_TAG, "Updated " + updated + " rows");
 
                     int rows = context.getContentResolver().bulkInsert(DoUIContract.TaskItemEntry.CONTENT_URI,
-                            allValues.toArray(new ContentValues[allValues.size()]));
+                            newValues.toArray(new ContentValues[newValues.size()]));
                     Log.v(LOG_TAG, "Entered " + rows + " rows");
 
 
@@ -416,7 +431,8 @@ public class DoUIParseSyncAdapter {
         query.findInBackground(new FindCallback<ShoppingItem>() {
             @Override
             public void done(List<ShoppingItem> items, ParseException e) {
-                List<ContentValues> allValues = new ArrayList<ContentValues>();
+                List<ContentValues> newValues = new ArrayList<ContentValues>();
+                int updated = 0;
                 if (e == null) {
                     for (final ShoppingItem item : items) {
                         ContentValues values = new ContentValues();
@@ -427,11 +443,24 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT,item.getUrgent());
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());
 
-                        allValues.add(values);
+                        Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                                TASK_COLUMNS,
+                                DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
+                                new String[]{item.getObjectId()},null);
+                        if (cursor != null && cursor.moveToFirst()) {
+                            updated += context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                                    values,
+                                    DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
+                                    new String[]{item.getObjectId()});
+
+                        }
+                        else {
+                            newValues.add(values);
+                        }
                     }
 
                     int rows = context.getContentResolver().bulkInsert(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                            allValues.toArray(new ContentValues[allValues.size()]));
+                            newValues.toArray(new ContentValues[newValues.size()]));
                     Log.v(LOG_TAG,"Entered "+rows+" rows");
 
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
@@ -498,12 +527,6 @@ public class DoUIParseSyncAdapter {
         helper.onUpgrade(helper.getWritableDatabase(),0,0);
 
 
-    }
-
-    public void registerOnSyncDoneAReceiver(Context context, String taskId,int action, String path) {
-
-        SyncDoneReceiver receiver = new SyncDoneReceiver(taskId,action);
-        context.registerReceiver(receiver,new IntentFilter(R.string.broadcast_sync_done+"."+path));
     }
 
 }

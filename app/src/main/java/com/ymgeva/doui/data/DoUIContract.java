@@ -72,6 +72,7 @@ public class DoUIContract {
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_DONE = "done";
         public static final String COLUMN_IS_DIRTY = "is_dirty";
+        public static final String COLUMN_LOCAL_ID = "local_id";
 
         public static Uri buildTaskUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -99,6 +100,8 @@ public class DoUIContract {
         public static final String COLUMN_URGENT = "urgent";
         public static final String COLUMN_DONE = "done";
         public static final String COLUMN_IS_DIRTY = "is_dirty";
+        public static final String COLUMN_LOCAL_ID = "local_id";
+
 
 
 
@@ -128,6 +131,8 @@ public class DoUIContract {
         public static final String COLUMN_NOTIFY_WHEN_DONE = "notify_when_done";
         public static final String COLUMN_DONE = "done";
         public static final String COLUMN_IS_DIRTY = "is_dirty";
+        public static final String COLUMN_LOCAL_ID = "local_id";
+
 
 
 
