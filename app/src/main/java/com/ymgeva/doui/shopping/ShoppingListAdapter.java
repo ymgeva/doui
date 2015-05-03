@@ -54,8 +54,6 @@ public class ShoppingListAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, final Cursor cursor) {
 
-        Log.d(LOG_TAG,cursor.getLong(ShoppingListFragment.COL_ID)+":"+cursor.getString(ShoppingListFragment.COL_TITLE)+" "+cursor.getInt(ShoppingListFragment.COL_DONE));
-
         final ViewHolder viewHolder = (ViewHolder) view.getTag();
 
         viewHolder.mId = cursor.getLong(ShoppingListFragment.COL_ID);
@@ -64,11 +62,6 @@ public class ShoppingListAdapter extends CursorAdapter {
         viewHolder.mTitleTextView.setText(cursor.getString(ShoppingListFragment.COL_TITLE));
 
         boolean isUrgent = cursor.getInt(ShoppingListFragment.COL_URGENT) > 0;
-        if (isUrgent) {
-            viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.urgent_item));
-            viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.urgent_item));
-        }
-
         boolean isDone = cursor.getInt(ShoppingListFragment.COL_DONE) > 0;
         viewHolder.mDoneCheckBox.setChecked(isDone);
         if (isDone) {
@@ -80,10 +73,17 @@ public class ShoppingListAdapter extends CursorAdapter {
         }
         else {
             viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
-            viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+            viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
 
-            viewHolder.mQuantityView.setPaintFlags(viewHolder.mQuantityView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
-            viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+            if (isUrgent) {
+                viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.urgent_item));
+                viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.urgent_item));
+            }
+            else {
+                viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+                viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
+            }
+
         }
 
         viewHolder.mDoneCheckBox.setOnClickListener(new View.OnClickListener() {

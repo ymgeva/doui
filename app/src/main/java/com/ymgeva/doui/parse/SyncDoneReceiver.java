@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.notifications.NotificationsService;
@@ -17,6 +18,8 @@ public class SyncDoneReceiver extends BroadcastReceiver {
     private int mPushCode;
     private long mLocalId;
 
+    private static final String LOG_TAG = SyncDoneReceiver.class.getSimpleName();
+
     public SyncDoneReceiver(String parseTaskId, int pushCode, long localId) {
         super();
         this.mParseTaskId = parseTaskId;
@@ -26,6 +29,8 @@ public class SyncDoneReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+
+        Log.d(LOG_TAG,"onReceive: Code = "+mPushCode);
 
         context.unregisterReceiver(this);
 
@@ -40,10 +45,28 @@ public class SyncDoneReceiver extends BroadcastReceiver {
 
     private void sendPush(Context context) {
 
-        Uri uri = DoUIContract.TaskItemEntry.buildTaskUri(mLocalId);
-        Cursor cursor = context.getContentResolver().query(uri,new String[] {DoUIContract.TaskItemEntry.COLUMN_PARSE_ID},null,null,null);
+        Cursor cursor = null;
+
+        switch (mPushCode) {
+            case DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_TASK: {
+                Uri uri = DoUIContract.TaskItemEntry.buildTaskUri(mLocalId);
+                cursor = context.getContentResolver().query(uri,new String[] {DoUIContract.TaskItemEntry.COLUMN_PARSE_ID},null,null,null);
+                break;
+            }
+            case DoUIPushBroadcastReceiver.PUSH_CODE_URGENT_SHOPPING: {
+                Uri uri = DoUIContract.ShoppingItemEntry.buildShoppingItemUri(mLocalId);
+                cursor = context.getContentResolver().query(uri,new String[] {DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID},null,null,null);
+                break;
+            }
+            default: {
+                return;
+            }
+        }
+
         if (cursor != null && cursor.moveToFirst()) {
-            DoUIParseSyncAdapter.sendPush(mPushCode,cursor.getString(0));
+            String parseId = cursor.getString(0);
+            Log.d(LOG_TAG,"sendingPush Code = "+mPushCode+" parseId = "+parseId);
+            DoUIParseSyncAdapter.sendPush(mPushCode,parseId);
         }
 
     }
@@ -67,7 +90,7 @@ public class SyncDoneReceiver extends BroadcastReceiver {
                 break;
             }
             default: {
-                //Log.d(LOG_TAG, "push code does not match");
+                Log.d(LOG_TAG, "push code does not match");
                 return;
             }
         }

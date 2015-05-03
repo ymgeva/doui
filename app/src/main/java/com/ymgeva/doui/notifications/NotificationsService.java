@@ -8,7 +8,6 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
@@ -55,21 +54,34 @@ public class NotificationsService extends IntentService {
     public static final int COL_CREATED_BY = 10;
     public static final int COL_NOTIFY_WHEN_DONE = 11;
 
+    public static final String [] SHOPPING_COLUMNS = {
+            DoUIContract.ShoppingItemEntry._ID,
+            DoUIContract.ShoppingItemEntry.COLUMN_TITLE
+    };
+
+    public static final int COL_SHOPPING_ID = 0;
+    public static final int COL_SHOPPING_TITLE = 1;
+
+
+
     public static final String ACTION_REMINDER = "com.ymgeva.doui.notifications.action.reminder";
     public static final String ACTION_FIRE_REMINDER_NOTIFICATION = "com.ymgeva.doui.notifications.action.fire_reminder_notification";
     public static final String ACTION_SHOW_TASK = "com.ymgeva.doui.notifications.action.fire_reminder_notification";
-    public static final String ACTION_DISMISS = "com.ymgeva.doui.notifications.action.dismiss";
+    public static final String ACTION_DISMISS_TASK_NOTIFICATION = "com.ymgeva.doui.notifications.action.dismiss_task";
+    public static final String ACTION_DISMISS_SHOPPING_NOTIFICATION = "com.ymgeva.doui.notifications.action.dismiss_shopping";
     public static final String ACTION_SNOOZE = "com.ymgeva.doui.notifications.action.snooze";
     public static final String ACTION_DONE = "com.ymgeva.doui.notifications.action.done";
     public static final String ACTION_NOTIFY_TASK_DONE = "com.ymgeva.doui.notifications.action.notify_task_done";
     public static final String ACTION_URGENT_TASK = "com.ymgeva.doui.notifications.action.urgent_task";
-    public static final String ACTION_URGENT_SHOPPING = "com.ymgeva.doui.notifications.action.urgent_task";
+    public static final String ACTION_URGENT_SHOPPING = "com.ymgeva.doui.notifications.action.urgent_shopping";
 
 
     public static final String PARAM_ID = "com.ymgeva.doui.notifications.extra.PARAM_ID";
     public static final String PARAM_TASK_PARSE_ID = "task_parse_id";
 
     private static final int TASKS_TAG_OFFSET = 300000;
+    private static final int SHOPPING_TAG_OFFSET = 400000;
+
 
     public static void startWithAction(Context context,String action) {
 
@@ -108,7 +120,7 @@ public class NotificationsService extends IntentService {
             } else if (ACTION_DONE.equals(action)) {
                 cancelNotification(this,(int)taskId);
                 setTaskDone(taskId);
-            } else if (ACTION_DISMISS.equals(action)) {
+            } else if (ACTION_DISMISS_TASK_NOTIFICATION.equals(action)) {
                 dismissReminder(taskId);
                 cancelNotification(this, (int) taskId);
             } else if (ACTION_NOTIFY_TASK_DONE.equals(action)) {
@@ -116,13 +128,52 @@ public class NotificationsService extends IntentService {
             } else if (ACTION_URGENT_TASK.equals(action)) {
                 notifyUrgentTask(parseId);
             } else if (ACTION_URGENT_SHOPPING.equals(action)) {
-                notifyUrgentSopping(parseId);
+                notifyUrgentShopping(parseId);
             }
         }
     }
 
-    private void notifyUrgentSopping(String parseId) {
+    private void notifyUrgentShopping(String parseId) {
 
+        Cursor cursor = getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                SHOPPING_COLUMNS,
+                DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
+                new String[]{parseId},null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            long itemId = cursor.getLong(COL_SHOPPING_ID);
+            NotificationCompat.Builder mBuilder =
+                    new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(getString(R.string.urgent_shopping_notification,cursor.getString(COL_SHOPPING_ID)))
+                            .setContentText(cursor.getString(COL_SHOPPING_TITLE))
+                            .setDefaults(Notification.DEFAULT_ALL);
+
+            Intent resultIntent = new Intent(this, MainActivity.class);
+            resultIntent.setAction(ACTION_URGENT_SHOPPING);
+            resultIntent.putExtra(PARAM_ID,itemId);
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addNextIntent(resultIntent);
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(
+                            0,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
+            mBuilder.setContentIntent(resultPendingIntent);
+
+            Intent dismissIntent = new Intent(this, NotificationsService.class);
+            dismissIntent.setAction(ACTION_DISMISS_SHOPPING_NOTIFICATION);
+            dismissIntent.putExtra(PARAM_ID,itemId);
+            PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            mBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(cursor.getString(COL_SHOPPING_TITLE)))
+                    .addAction (R.drawable.ic_stat_dismiss,getString(R.string.dismiss), piDismiss);
+
+            NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.notify(SHOPPING_TAG_OFFSET +(int)itemId, mBuilder.build());
+        }
     }
 
     private void notifyUrgentTask(String parseId) {
@@ -154,7 +205,7 @@ public class NotificationsService extends IntentService {
             mBuilder.setContentIntent(resultPendingIntent);
 
             Intent dismissIntent = new Intent(this, NotificationsService.class);
-            dismissIntent.setAction(ACTION_DISMISS);
+            dismissIntent.setAction(ACTION_DISMISS_TASK_NOTIFICATION);
             dismissIntent.putExtra(PARAM_ID,taskId);
             PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -196,7 +247,7 @@ public class NotificationsService extends IntentService {
             mBuilder.setContentIntent(resultPendingIntent);
 
             Intent dismissIntent = new Intent(this, NotificationsService.class);
-            dismissIntent.setAction(ACTION_DISMISS);
+            dismissIntent.setAction(ACTION_DISMISS_TASK_NOTIFICATION);
             dismissIntent.putExtra(PARAM_ID,taskId);
             PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -280,7 +331,7 @@ public class NotificationsService extends IntentService {
             mBuilder.setContentIntent(resultPendingIntent);
 
             Intent dismissIntent = new Intent(this, NotificationsService.class);
-            dismissIntent.setAction(ACTION_DISMISS);
+            dismissIntent.setAction(ACTION_DISMISS_TASK_NOTIFICATION);
             dismissIntent.putExtra(PARAM_ID,taskId);
             PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -309,6 +360,10 @@ public class NotificationsService extends IntentService {
 
     private void dismissReminder(long taskId) {
         Log.d(LOG_TAG, "setTaskDone. taskId = " + taskId);
+
+        if (taskId == 0) {
+            return;
+        }
 
         ContentValues values = new ContentValues();
         values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER, false);

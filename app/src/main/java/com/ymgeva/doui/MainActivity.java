@@ -31,14 +31,14 @@ public class MainActivity extends ActionBarActivity {
 
             Intent notificationIntent = getIntent();
             String action = notificationIntent.getAction();
-            if (NotificationsService.ACTION_SHOW_TASK.equals(action)) {
+            if (NotificationsService.ACTION_SHOW_TASK.equals(action) || NotificationsService.ACTION_URGENT_SHOPPING.equals(action)) {
                 long taskId = notificationIntent.getLongExtra(NotificationsService.PARAM_ID,0);
                 Intent dismissIntent = new Intent(this,NotificationsService.class);
-                dismissIntent.setAction(NotificationsService.ACTION_DISMISS);
+                dismissIntent.setAction(NotificationsService.ACTION_DISMISS_TASK_NOTIFICATION);
                 dismissIntent.putExtra(NotificationsService.PARAM_ID, taskId);
                 startService(dismissIntent);
                 if (taskId > 0) {
-                    intent.setAction(NotificationsService.ACTION_SHOW_TASK);
+                    intent.setAction(action);
                     intent.putExtra(NotificationsService.PARAM_ID,taskId);
                 }
             }

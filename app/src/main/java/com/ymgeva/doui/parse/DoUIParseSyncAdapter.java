@@ -444,7 +444,7 @@ public class DoUIParseSyncAdapter {
                         values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());
 
                         Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                                TASK_COLUMNS,
+                                SHOPPING_COLUMNS,
                                 DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
                                 new String[]{item.getObjectId()},null);
                         if (cursor != null && cursor.moveToFirst()) {

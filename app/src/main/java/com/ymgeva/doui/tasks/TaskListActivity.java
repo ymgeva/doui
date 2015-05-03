@@ -65,6 +65,10 @@ public class TaskListActivity extends ActionBarActivity
         if (NotificationsService.ACTION_SHOW_TASK.equals(intent.getAction())) {
             onItemSelected(intent.getLongExtra(NotificationsService.PARAM_ID,0));
         }
+        else if (NotificationsService.ACTION_URGENT_SHOPPING.equals(intent.getAction())) {
+            Intent shoppingIntent = new Intent(this,ShoppingListActivity.class);
+            startActivity(shoppingIntent);
+        }
     }
 
     @Override

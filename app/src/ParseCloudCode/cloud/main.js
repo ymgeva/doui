@@ -36,10 +36,24 @@ Parse.Cloud.define("SendPushCode", function(request,response) {
 	var query = new Parse.Query(Parse.Installation);
 	query.equalTo('user_id',request.params["user_id"]);
 
+	var alertMessage = "";
+	var push_code = request.params["push_code"];
+	if (push_code == 100) {
+		alertMessage = "PUSH_CODE_UPDATE_PARTNER";
+	} else if (push_code == 200) {
+		alertMessage = "PUSH_CODE_URGENT_TASK"
+	} else if (push_code == 201) {
+		alertMessage = "PUSH_CODE_NOTIFY_DONE"
+	} else if (push_code == 300) {
+		alertMessage = "PUSH_CODE_URGENT_SHOPPING"
+	}
+
+
+
 	Parse.Push.send({
 		where: query,
 		data: {
-			alert: "yada yada"+request.params["push_code"],
+			alert: request.params["push_code"]+": "+alertMessage+" "+request.params["object_id"],
 			push_code:request.params["push_code"],
 			object_id:request.params["object_id"]
 		}		
