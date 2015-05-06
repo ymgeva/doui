@@ -47,23 +47,41 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
 
         String table = bundle.getString("requestedTable");
 
-
         if (table == null) {
             DoUIParseSyncAdapter.getInstance().syncTasks(getContext());
-            DoUIParseSyncAdapter.getInstance().syncGeneralItems(getContext());
+            //DoUIParseSyncAdapter.getInstance().syncGeneralItems(getContext());
             DoUIParseSyncAdapter.getInstance().syncShoppingItems(getContext());
         }
         else {
             if (table.equals(DoUIContract.PATH_TASKS)) {
                 DoUIParseSyncAdapter.getInstance().syncTasks(getContext());
             }
-            else if (table.equals(DoUIContract.PATH_GENERAL)) {
-                DoUIParseSyncAdapter.getInstance().syncGeneralItems(getContext());
-            }
+//            else if (table.equals(DoUIContract.PATH_GENERAL)) {
+//                DoUIParseSyncAdapter.getInstance().syncGeneralItems(getContext());
+//            }
             else if (table.equals(DoUIContract.PATH_SHOPPING)) {
                 DoUIParseSyncAdapter.getInstance().syncShoppingItems(getContext());
             }
         }
+        deleteOldRecords();
+    }
+
+    public void deleteOldRecords() {
+
+        long today = Utility.getTodayMs();
+
+        //delete tasks that are before today
+        int deleted = getContext().getContentResolver().delete(DoUIContract.TaskItemEntry.CONTENT_URI,
+                DoUIContract.TaskItemEntry.COLUMN_DATE+" < ?",
+                new String[] {Long.toString(today)});
+        Log.d(LOG_TAG,"Deleted "+deleted+" rows from tasks table");
+
+        //delete done shopping items that were closed before today
+        deleted = getContext().getContentResolver().delete(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                DoUIContract.ShoppingItemEntry.COLUMN_LAST_UPDATE+" < "+today+" AND "+ DoUIContract.ShoppingItemEntry.COLUMN_DONE+" = 1",
+                null);
+        Log.d(LOG_TAG,"Deleted "+deleted+" rows from shopping table");
+
     }
 
     public static void initializeSyncAdapter(Context context) {
@@ -125,10 +143,10 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    private static void onAccountCreated(Account newAccount, Context context) {
+    public static void onAccountCreated(Context context) {
 
         DoUISyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
-        ContentResolver.setSyncAutomatically(newAccount, context.getString(R.string.content_authority), true);
+        ContentResolver.setSyncAutomatically(getSyncAccount(context), context.getString(R.string.content_authority), true);
         syncImmediately(context,null);
     }
 

@@ -1,5 +1,6 @@
 package com.ymgeva.doui.tasks;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -10,14 +11,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -44,7 +48,7 @@ import java.util.Date;
 public class EditTaskActivity extends ActionBarActivity {
 
     public static final String IS_NEW_TASK_SETTING = "mode_setting";
-    private EditTaskFragment mFragment;
+    public EditTaskFragment mFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,13 +63,18 @@ public class EditTaskActivity extends ActionBarActivity {
         }
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_edit_task, menu);
         return true;
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -273,20 +282,33 @@ public class EditTaskActivity extends ActionBarActivity {
                 }
             });
 
-            mReminderView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            mReminderView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    if (b) {
+                public void onClick(View view) {
+                    if (mReminderView.isChecked()) {
                         mReminderTimeView.setVisibility(View.VISIBLE);
                         mReminderTimeView.performClick();
-                    }
-                    else {
+                    } else {
                         mReminderTimeView.setVisibility(View.INVISIBLE);
                     }
                 }
             });
 
             return rootView;
+        }
+
+        @Override
+        public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+            super.onViewStateRestored(savedInstanceState);
+            if (mReminderView.isChecked()) {
+                mReminderTimeView.setVisibility(View.VISIBLE);
+            }
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((EditTaskActivity)activity).mFragment = this;
         }
 
         public class IUSPinnerAdapter extends ArrayAdapter<String> {

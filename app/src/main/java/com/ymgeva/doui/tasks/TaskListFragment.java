@@ -39,6 +39,7 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
     private static final String SELECTED_KEY = "selected_position";
 
 
+
     public static final String[] TASK_COLUMNS = {
             DoUIContract.TaskItemEntry._ID,
             DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,

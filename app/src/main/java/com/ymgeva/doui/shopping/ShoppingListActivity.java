@@ -27,7 +27,7 @@ public class ShoppingListActivity extends ActionBarActivity implements ShoppingL
         setContentView(R.layout.activity_shopping_list);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.shopping_list, new ShoppingListFragment())
+                    .add(R.id.shopping_container, new ShoppingListFragment())
                     .commit();
         }
         mSwipeLayout = (SwipeRefreshLayout) findViewById(R.id.shopping_swipe_container);

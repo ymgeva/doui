@@ -11,9 +11,8 @@
     <color name="com_parse_ui_facebook_login_button">#3B5998</color>
     <color name="com_parse_ui_facebook_login_button_push">#2E4677</color>
     <color name="com_parse_ui_facebook_login_button_focus">#304F8B</color>
-    <color name="com_parse_ui_twitter_login_button">#2DAAE2</color>
-    <color name="com_parse_ui_twitter_login_button_push">#2588B5</color>
-    <color name="com_parse_ui_twitter_login_button_focus">#2788BE</color>
+    <color name="item_selected">#2DAAE2</color>
     <color name="urgent_item">#FF0000</color>
+
 
 </resources>

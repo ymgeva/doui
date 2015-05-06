@@ -227,7 +227,14 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
 
             mReminder.setChecked(data.getInt(COL_REMINDER) > 0);
             mReminderTime = data.getLong(COL_REMINDER_TIME);
-            mReminderTimeView.setText(Utility.formatTime(mReminderTime));
+            if (mReminder.isChecked()) {
+                mReminderTimeView.setText(Utility.formatTime(mReminderTime));
+                mReminderTimeView.setVisibility(View.VISIBLE);
+            }
+            else {
+                mReminderTimeView.setVisibility(View.GONE);
+            }
+
 
             mNotifyWhenDone.setChecked(data.getInt(COL_NOTIFY_WHEN_DONE) > 0);
 

@@ -11,10 +11,12 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
+import com.parse.LogOutCallback;
 import com.parse.Parse;
 import com.parse.ParseAnonymousUtils;
 import com.parse.ParseCloud;
@@ -115,20 +117,21 @@ public class DoUIParseSyncAdapter {
     private DoUIParseSyncAdapter() {
     }
 
-    public void init(Context context) {
+    public void init(final Context context) {
 
         ParseObject.registerSubclass(TaskItem.class);
         ParseObject.registerSubclass(GeneralItem.class);
         ParseObject.registerSubclass(ShoppingItem.class);
 
         Parse.initialize(context, "FcgtxMp25GF3Y9NPOTm7CcOAABAkhTdNmTHnPL1X", "BJcZI0Bxor39HE1GrQDo7suJhjlOXImSMINYBDyC");
+        ParseUser.enableRevocableSessionInBackground();
         ParsePush.subscribeInBackground("", new SaveCallback() {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
                     Log.d("com.parse.push", "successfully subscribed to the broadcast channel.");
                 } else {
-                    Log.e("com.parse.push", "failed to subscribe for push", e);
+                    ParseErrorHandler.handleParseException(e, context);
                 }
             }
         });
@@ -150,14 +153,30 @@ public class DoUIParseSyncAdapter {
             Log.e(LOG_TAG,"No network access");
             return false;
         }
+//        try {
+//            Thread.sleep(3000,0);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+        ParseUser user = ParseUser.getCurrentUser();
+        if (user == null) {
+            ParseErrorHandler.handleParseException(new ParseException(ParseException.INVALID_SESSION_TOKEN,"User is not logged"),context);
+            return false;
+        }
         if (ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
-            Log.e(LOG_TAG,"User is not logged");
+            ParseErrorHandler.handleParseException(new ParseException(ParseException.INVALID_SESSION_TOKEN, "User is not logged"), context);
             return false;
         }
         return true;
     }
 
     public void syncTasks(final Context context) {
+
+        if (!canSyncToParse(context)) {
+            Log.e(LOG_TAG,"Sync is not possible");
+            notifyOnDone(context,DoUIContract.PATH_TASKS);
+        }
 
         Cursor cursor = context.getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI, TASK_COLUMNS, DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY + " = 1", null, null);
         if (cursor != null && cursor.moveToFirst()) {
@@ -191,25 +210,24 @@ public class DoUIParseSyncAdapter {
             taskItems.add(taskItem);
         } while (cursor.moveToNext());
 
-        ParseObject.saveAllInBackground(taskItems, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    Log.v(LOG_TAG, taskItems.size() + " saved to Parse");
-                    for (TaskItem taskItem : taskItems) {
-                        ContentValues values = new ContentValues();
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, taskItem.getObjectId());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY, false);
-                        context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
-                                values, "_ID = " + taskItem.getLong("LOCAL_ID"),
-                                null);
-                    }
-                    downloadTasks(context);
-                } else {
-                    Log.e(LOG_TAG, "Failed to save, will not download.", e);
-                }
+        try {
+            ParseObject.saveAll(taskItems);
+            Log.v(LOG_TAG, taskItems.size() + " saved to Parse");
+            for (TaskItem taskItem : taskItems) {
+                ContentValues values = new ContentValues();
+                values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID, taskItem.getObjectId());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY, false);
+                context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
+                        values, "_ID = " + taskItem.getLong("LOCAL_ID"),
+                        null);
             }
-        });
+            downloadTasks(context);
+        } catch (ParseException e) {
+            Log.e(LOG_TAG, "Failed to save, will not download.");
+            notifyOnDone(context,DoUIContract.PATH_TASKS);
+            ParseErrorHandler.handleParseException(e,context);
+
+        }
     }
 
     private void downloadTasks(final Context context) {
@@ -236,73 +254,67 @@ public class DoUIParseSyncAdapter {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         long lastUpdate = prefs.getLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,0);
-//        if (lastUpdate > 0) {
-//            query.whereGreaterThanOrEqualTo("updatedAt",new Date(lastUpdate));
-//        }
+        if (lastUpdate > 0) {
+            query.whereGreaterThanOrEqualTo("updatedAt",new Date(lastUpdate));
+        }
 
-
-        query.findInBackground(new FindCallback<TaskItem>() {
-            @Override
-            public void done(List<TaskItem> taskItems, ParseException e) {
-                List<ContentValues> newValues = new ArrayList<ContentValues>();
-                int updated = 0;
-
-                if (e == null) {
-                    for (final TaskItem taskItem : taskItems) {
-                        ContentValues values = new ContentValues();
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY, taskItem.getCreatedBy());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO, taskItem.getAssignedTo());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,taskItem.getDone());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_TITLE,taskItem.getTitle());
+        List<TaskItem> taskItems = null;
+        try {
+            taskItems = query.find();
+            List<ContentValues> newValues = new ArrayList<ContentValues>();
+            int updated = 0;
+            for (final TaskItem taskItem : taskItems) {
+                ContentValues values = new ContentValues();
+                values.put(DoUIContract.TaskItemEntry.COLUMN_CREATED_BY, taskItem.getCreatedBy());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_ASSIGNED_TO, taskItem.getAssignedTo());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_DONE,taskItem.getDone());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_TITLE,taskItem.getTitle());
 //                        try {
 //                            values.put(DoUIContract.TaskItemEntry.COLUMN_IMAGE,taskItem.getImage().getData());
 //                        } catch (Exception e1) {
 //                            e1.printStackTrace();
 //                        }
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_DATE,taskItem.getDate().getTime());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,taskItem.getReminderTime().getTime());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER,taskItem.getReminder());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,taskItem.getNotifyWhenDone());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,taskItem.getItemDescription());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
-                        values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,false);
+                values.put(DoUIContract.TaskItemEntry.COLUMN_DATE,taskItem.getDate().getTime());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER_TIME,taskItem.getReminderTime().getTime());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_REMINDER,taskItem.getReminder());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_NOTIFY_WHEN_DONE,taskItem.getNotifyWhenDone());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_DESCRIPTION,taskItem.getItemDescription());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_PARSE_ID,taskItem.getObjectId());
+                values.put(DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY,false);
 
-                        Cursor cursor = context.getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI,
-                                TASK_COLUMNS,
-                                DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",
-                                new String[]{taskItem.getObjectId()},null);
-                        if (cursor != null && cursor.moveToFirst()) {
-                            updated += context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
-                                    values,
-                                    DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",
-                                    new String[]{taskItem.getObjectId()});
-
-                        }
-                        else {
-                            newValues.add(values);
-                        }
-                    }
-                    Log.v(LOG_TAG, "Updated " + updated + " rows");
-
-                    int rows = context.getContentResolver().bulkInsert(DoUIContract.TaskItemEntry.CONTENT_URI,
-                            newValues.toArray(new ContentValues[newValues.size()]));
-                    Log.v(LOG_TAG, "Entered " + rows + " rows");
-
-
-
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                    editor.putLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,new Date().getTime());
-                    editor.commit();
+                Cursor cursor = context.getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI,
+                        TASK_COLUMNS,
+                        DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",
+                        new String[]{taskItem.getObjectId()},null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    updated += context.getContentResolver().update(DoUIContract.TaskItemEntry.CONTENT_URI,
+                            values,
+                            DoUIContract.TaskItemEntry.COLUMN_PARSE_ID+" = ?",
+                            new String[]{taskItem.getObjectId()});
 
                 }
                 else {
-                    Log.d(LOG_TAG,e.toString());
+                    newValues.add(values);
                 }
-                notifyOnDone(context,DoUIContract.PATH_TASKS);
-                NotificationsService.startWithAction(context,NotificationsService.ACTION_REMINDER);
-
             }
-        });
+            Log.v(LOG_TAG, "Updated " + updated + " rows");
+
+            int rows = context.getContentResolver().bulkInsert(DoUIContract.TaskItemEntry.CONTENT_URI,
+                    newValues.toArray(new ContentValues[newValues.size()]));
+            Log.v(LOG_TAG, "Entered " + rows + " rows");
+
+
+
+            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+            editor.putLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,new Date().getTime());
+            editor.commit();
+
+        } catch (ParseException e) {
+            ParseErrorHandler.handleParseException(e, context);
+        }
+
+        notifyOnDone(context,DoUIContract.PATH_TASKS);
+        NotificationsService.startWithAction(context,NotificationsService.ACTION_REMINDER);
 
     }
 
@@ -355,6 +367,12 @@ public class DoUIParseSyncAdapter {
     }
 
     public void syncShoppingItems(final Context context) {
+
+        if (!canSyncToParse(context)) {
+            Log.e(LOG_TAG,"Sync is not possible");
+            notifyOnDone(context,DoUIContract.PATH_SHOPPING);
+        }
+
         Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI, SHOPPING_COLUMNS, DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY + " = 1", null, null);
         if (cursor != null && cursor.moveToFirst()) {
             Log.v(LOG_TAG,"Has unsaved shopping items, will upload first");
@@ -384,25 +402,23 @@ public class DoUIParseSyncAdapter {
             shoppingItems.add(shoppingItem);
         } while (cursor.moveToNext());
 
-        ParseObject.saveAllInBackground(shoppingItems, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    Log.v(LOG_TAG, shoppingItems.size() + " saved to Parse");
-                    for (ShoppingItem shoppingItem : shoppingItems) {
-                        ContentValues values = new ContentValues();
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID, shoppingItem.getObjectId());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY, false);
-                        context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                                values, "_ID = " + shoppingItem.getLong("LOCAL_ID"),
-                                null);
-                    }
-                    downloadShoppingItems(context);
-                } else {
-                    Log.e(LOG_TAG, "Failed to save shopping items, will not download.", e);
-                }
+        try {
+            ParseObject.saveAll(shoppingItems);
+            Log.v(LOG_TAG, shoppingItems.size() + " saved to Parse");
+            for (ShoppingItem shoppingItem : shoppingItems) {
+                ContentValues values = new ContentValues();
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID, shoppingItem.getObjectId());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY, false);
+                context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                        values, "_ID = " + shoppingItem.getLong("LOCAL_ID"),
+                        null);
             }
-        });
+            downloadShoppingItems(context);
+        } catch (ParseException e) {
+            Log.e(LOG_TAG, "Failed to save shopping items, will not download.", e);
+            notifyOnDone(context,DoUIContract.PATH_SHOPPING);
+            ParseErrorHandler.handleParseException(e, context);
+        }
     }
 
     private void downloadShoppingItems(final Context context) {
@@ -428,49 +444,50 @@ public class DoUIParseSyncAdapter {
         Date lastUpdate = new Date(prefs.getLong(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME,0));
         query.whereGreaterThanOrEqualTo("updatedAt",lastUpdate);
 
-        query.findInBackground(new FindCallback<ShoppingItem>() {
-            @Override
-            public void done(List<ShoppingItem> items, ParseException e) {
-                List<ContentValues> newValues = new ArrayList<ContentValues>();
-                int updated = 0;
-                if (e == null) {
-                    for (final ShoppingItem item : items) {
-                        ContentValues values = new ContentValues();
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY, item.getCreatedBy());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_DONE,item.getDone());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_TITLE,item.getTitle());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,item.getObjectId());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT,item.getUrgent());
-                        values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());
+        List<ShoppingItem> items = null;
+        try {
+            items = query.find();
+            List<ContentValues> newValues = new ArrayList<ContentValues>();
+            int updated = 0;
+            for (final ShoppingItem item : items) {
+                ContentValues values = new ContentValues();
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY, item.getCreatedBy());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_DONE,item.getDone());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_TITLE,item.getTitle());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,item.getObjectId());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT,item.getUrgent());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_LAST_UPDATE,item.getUpdatedAt().getTime());
 
-                        Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                                SHOPPING_COLUMNS,
-                                DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
-                                new String[]{item.getObjectId()},null);
-                        if (cursor != null && cursor.moveToFirst()) {
-                            updated += context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                                    values,
-                                    DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
-                                    new String[]{item.getObjectId()});
+                Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                        SHOPPING_COLUMNS,
+                        DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
+                        new String[]{item.getObjectId()},null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    updated += context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                            values,
+                            DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
+                            new String[]{item.getObjectId()});
 
-                        }
-                        else {
-                            newValues.add(values);
-                        }
-                    }
-
-                    int rows = context.getContentResolver().bulkInsert(DoUIContract.ShoppingItemEntry.CONTENT_URI,
-                            newValues.toArray(new ContentValues[newValues.size()]));
-                    Log.v(LOG_TAG,"Entered "+rows+" rows");
-
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                    editor.putLong(DoUIContract.TaskItemEntry.LAST_SYNC_TIME,new Date().getTime());
-                    editor.commit();
-
-                    notifyOnDone(context,DoUIContract.PATH_SHOPPING);
                 }
+                else {
+                    newValues.add(values);
+                }
+
+                Log.v(LOG_TAG,"downloadShoppingItems: Updated "+updated+" rows");
+                int rows = context.getContentResolver().bulkInsert(DoUIContract.ShoppingItemEntry.CONTENT_URI,
+                        newValues.toArray(new ContentValues[newValues.size()]));
+                Log.v(LOG_TAG,"downloadShoppingItems: Entered "+rows+" rows");
+
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                editor.putLong(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME,new Date().getTime());
+                editor.commit();
             }
-        });
+        }
+         catch (ParseException e) {
+            ParseErrorHandler.handleParseException(e,context);
+        }
+        notifyOnDone(context,DoUIContract.PATH_SHOPPING);
     }
 
     private void notifyOnDone(Context context,String filter) {
@@ -521,10 +538,22 @@ public class DoUIParseSyncAdapter {
     }
 
 
-    public static void logout(Context context) {
-        ParseUser.logOut();
-        DbHelper helper = new DbHelper(context);
-        helper.onUpgrade(helper.getWritableDatabase(),0,0);
+    public static void logout(final Context context) {
+        ParseUser.logOutInBackground(new LogOutCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e != null) {
+                    e.printStackTrace();
+                }
+                DbHelper helper = new DbHelper(context);
+                helper.onUpgrade(helper.getWritableDatabase(), 0, 0);
+            }
+        });
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.remove(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME);
+        editor.remove(DoUIContract.TaskItemEntry.LAST_SYNC_TIME);
+        editor.commit();
 
 
     }

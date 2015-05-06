@@ -22,5 +22,8 @@
         android:gravity="center"
         android:orientation="vertical">
 
+        <include layout="@layout/com_parse_ui_parse_login_form" />
+
+
     </LinearLayout>
 </LinearLayout>

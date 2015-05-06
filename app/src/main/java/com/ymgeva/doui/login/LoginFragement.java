@@ -44,7 +44,7 @@ public class LoginFragement extends android.support.v4.app.Fragment {
         mSignUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onSignUpClicked();
+                mListener.onSignUpClicked(mEmailField.getText().toString(),mPasswordField.getText().toString());
             }
         });
 
@@ -72,7 +72,7 @@ public class LoginFragement extends android.support.v4.app.Fragment {
     public interface LoginFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onLoginClicked(String email,String password);
-        public void onSignUpClicked();
+        public void onSignUpClicked(String email,String password);
     }
 
 }

@@ -1,8 +1,13 @@
 package com.ymgeva.doui.login;
 
+import android.app.AlertDialog;
+import android.app.DialogFragment;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -19,6 +24,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
+import com.ymgeva.doui.MainActivity;
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
@@ -46,7 +52,9 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
         setContentView(R.layout.activity_login);
 
         if (savedInstanceState == null) {
+
             int loginMode = getIntent().getIntExtra(LOGIN_MODE,LOGIN_MODE_NEW_USER);
+
             if (loginMode == LOGIN_MODE_NEW_USER) {
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.container, new LoginFragement())
@@ -83,57 +91,73 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
 
     @Override
     public void onLoginClicked(final String email, String password) {
-        ParseUser.logInInBackground(email,password, new LogInCallback() {
-            public void done(ParseUser user, ParseException e) {
-                if (user != null) {
-                    DoUIParseSyncAdapter.updateInstallation();
-                    if (user.getString(DoUIParseSyncAdapter.PARTNER_ID) != null) {
-                        goToMainScreen();
-                    }
-                    else {
-                        showConnectToPartnerScreen(email);
-                    }
-                } else {
-                    Log.e(LOG_TAG,"Login failed with exception: "+e.toString());
+
+        ProgressDialog progress = new ProgressDialog(this);
+        progress.setMessage(getString(R.string.logging_in));
+        progress.show();
+
+        try {
+            ParseUser.logIn(email,password);
+            ParseUser me = ParseUser.getCurrentUser();
+            if (me != null) {
+                DoUIParseSyncAdapter.updateInstallation();
+                if (me.getString(DoUIParseSyncAdapter.PARTNER_ID) != null) {
+                    goToMainScreen();
+                }
+                else {
+                    showConnectToPartnerScreen(email);
                 }
             }
-        });
+            else {
+                Toast.makeText(this,R.string.login_failed,Toast.LENGTH_LONG).show();
+            }
+
+        } catch (ParseException e) {
+            Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+        finally {
+            progress.dismiss();
+        }
     }
 
     @Override
-    public void onSignUpClicked() {
+    public void onSignUpClicked(String email,String password) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new SignUpFragment())
+                .replace(R.id.container, SignUpFragment.newInstance(email,password))
                 .addToBackStack(null)
                 .commit();
     }
 
     @Override
     public void onCreateAccountClicked(final String email, String password, String passwordConfirmed, String name) {
-        ParseUser user = new ParseUser();
+        final ParseUser user = new ParseUser();
         user.setUsername(email.toLowerCase());
         user.setPassword(password);
         user.setEmail(email.toLowerCase());
         user.put("name",name);
 
-        user.signUpInBackground(new SignUpCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    DoUIParseSyncAdapter.updateInstallation();
+        ProgressDialog progress = new ProgressDialog(this);
+        progress.setMessage(getString(R.string.signing_up));
+        progress.show();
 
-                    showConnectToPartnerScreen(email.toLowerCase());
-                }
-                else {
-                    Toast.makeText(getApplicationContext(),e.toString(),Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        try {
+            user.signUp();
+            ParseUser.logIn(email,password);
+            DoUIParseSyncAdapter.updateInstallation();
+            showConnectToPartnerScreen(email.toLowerCase());
+        }
+        catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
+
+        }
+        finally {
+            progress.dismiss();
+        }
     }
 
     private void showConnectToPartnerScreen(String email) {
-
-        ConnectToPartnerFragment fragment = new ConnectToPartnerFragment();
 
         ParseQuery<ParseUser> query = ParseUser.getQuery();
         query.whereEqualTo(ConnectToPartnerFragment.PARTNER_EMAIL,email);
@@ -141,27 +165,32 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
             List<ParseUser> users = query.find();
             if (users != null && users.size() > 0) {
                 mPartner = users.get(0);
-                Bundle bundle = new Bundle();
-                bundle.putString(ConnectToPartnerFragment.PARTNER_EMAIL,mPartner.getEmail());
-                bundle.putString(ConnectToPartnerFragment.PARTNER_NAME,mPartner.getString("name"));
-                bundle.putString(ConnectToPartnerFragment.SHARED_PASSWORD,mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
-                fragment.setArguments(bundle);
+                ConnectToPartnerFragment fragment = ConnectToPartnerFragment.newInstance(mPartner.getString("name"),mPartner.getEmail(),mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
+                getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, fragment)
+                        .commit();
             }
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, fragment)
-                .addToBackStack(null)
-                .commit();
+
     }
 
 
 
     @Override
     public void onSkipClicked() {
-        goToMainScreen();
+        new AlertDialog.Builder(this).
+                setMessage(R.string.connect_to_partner_skipped).
+                setCancelable(false).
+                setPositiveButton(R.string.ok,new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        goToMainScreen();
+                    }
+                }).show();
     }
 
     @Override
@@ -214,6 +243,7 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     }
 
     private void goToMainScreen() {
+        DoUISyncAdapter.onAccountCreated(getApplicationContext());
         Intent intent = new Intent(this,TaskListActivity.class);
         startActivity(intent);
         finish();

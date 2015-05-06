@@ -114,4 +114,10 @@
     <string name="task_done_notification">Your partner has done: %s</string>
     <string name="urgent_task_notification">New or updated task %s</string>
     <string name="urgent_shopping_notification">Need to buy %s!</string>
+    <string name="please_relogin">Session expired, Please Relogin</string>
+    <string name="ok">OK</string>
+    <string name="connect_to_partner_skipped"><![CDATA[When you are ready to connect, press Menu -> Connect to Partner]]></string>
+    <string name="login_failed">Login failed for unexpected reason</string>
+    <string name="logging_in">Logging in</string>
+    <string name="signing_up">Signing Up</string>
 </resources>

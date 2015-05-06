@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/task_detail_title"
         android:textSize="30dp"
-        android:text="Task Title"
         android:gravity="center"/>
 
     <LinearLayout
@@ -27,7 +26,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/task_detail_date"
             android:textSize="24dp"
-            android:text="24/04"
             android:gravity="center"/>
         <TextView
             android:layout_width="0dp"
@@ -35,7 +33,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/task_detail_time"
             android:textSize="24dp"
-            android:text="16:00"
             android:gravity="center"/>
     </LinearLayout>
 
@@ -47,7 +44,7 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:id="@+id/task_detail_from_image"
-            android:src="@drawable/i_image"/>
+            />
         <ImageView
             android:layout_width="0dp"
             android:layout_height="60dp"
@@ -58,7 +55,7 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:id="@+id/task_detail_to_image"
-            android:src="@drawable/u_image"/>
+           />
 
     </LinearLayout>
 
@@ -68,7 +65,7 @@
         android:layout_weight="3"
         android:id="@+id/task_detail_text"
         android:layout_marginTop="16dp"
-        android:text="@string/ipsum_dolor"/>
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -86,7 +83,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/task_detail_reminder_checkbox"
-                android:text="@string/reminder"/>
+                android:text="@string/reminder"
+                android:enabled="false"/>
 
 
             <TextView
@@ -94,9 +92,9 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/task_detail_reminder_time"
                 android:textSize="16dp"
-                android:text="16:00"
                 android:gravity="left"
-                android:paddingLeft="20dp"/>
+                android:paddingLeft="20dp"
+                />
         </LinearLayout>
 
         <CheckBox
@@ -105,6 +103,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:id="@+id/task_detail_notify_checkbox"
+            android:enabled="false"
             android:text="@string/notify"/>
 
         </LinearLayout>

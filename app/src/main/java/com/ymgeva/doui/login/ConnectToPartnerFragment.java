@@ -1,6 +1,7 @@
 package com.ymgeva.doui.login;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -36,6 +37,19 @@ public class ConnectToPartnerFragment extends Fragment {
         // Required empty public constructor
     }
 
+
+    public static ConnectToPartnerFragment newInstance(String partnerName,String partnerEmail, String sharedPassword) {
+
+        Bundle args = new Bundle();
+        args.putString(PARTNER_NAME,partnerName);
+        args.putString(PARTNER_EMAIL,partnerEmail);
+        args.putString(SHARED_PASSWORD,sharedPassword);
+
+        ConnectToPartnerFragment fragment = new ConnectToPartnerFragment();
+        fragment.setArguments(args);
+        return fragment;
+
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

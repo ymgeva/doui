@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     private static final String DATABASE_NAME = "doui.db";
 
@@ -46,6 +46,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY + " TEXT NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_DONE + " INTEGER NOT NULL, " +
                 DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY + " INTEGER, " +
+                DoUIContract.ShoppingItemEntry.COLUMN_LAST_UPDATE + " INTEGER, " +
                 "UNIQUE (" + DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID +") ON CONFLICT REPLACE"+
                 " );";
 

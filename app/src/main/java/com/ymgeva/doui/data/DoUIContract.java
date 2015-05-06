@@ -99,6 +99,7 @@ public class DoUIContract {
         public static final String COLUMN_URGENT = "urgent";
         public static final String COLUMN_DONE = "done";
         public static final String COLUMN_IS_DIRTY = "is_dirty";
+        public static final String COLUMN_LAST_UPDATE = "last_update";
 
 
 

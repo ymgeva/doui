@@ -1,5 +1,8 @@
 package com.ymgeva.doui;
 
+import android.content.Context;
+import android.content.res.Configuration;
+
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 
 import java.io.UnsupportedEncodingException;
@@ -86,8 +89,22 @@ public class Utility {
                nowCal.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR);
     }
 
+    public static long getTodayMs() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR,0);
+        calendar.set(Calendar.MINUTE,0);
+        calendar.set(Calendar.SECOND,0);
+        calendar.set(Calendar.MILLISECOND,0);
+        return calendar.getTimeInMillis();
+    }
 
     public static String formatSuccess (int s) {
         return s > 0 ? "Successful" : "Failed";
+    }
+
+    public static boolean isTablet(Context context) {
+        return (context.getResources().getConfiguration().screenLayout
+                & Configuration.SCREENLAYOUT_SIZE_MASK)
+                >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 }

@@ -68,6 +68,7 @@ public class TaskListActivity extends ActionBarActivity
         else if (NotificationsService.ACTION_URGENT_SHOPPING.equals(intent.getAction())) {
             Intent shoppingIntent = new Intent(this,ShoppingListActivity.class);
             startActivity(shoppingIntent);
+            overridePendingTransition(R.anim.fadein,R.anim.fadeout);
         }
     }
 
@@ -94,10 +95,11 @@ public class TaskListActivity extends ActionBarActivity
         if (id == R.id.action_shopping) {
             Intent intent = new Intent(this,ShoppingListActivity.class);
             startActivity(intent);
+            overridePendingTransition(R.anim.fadein,R.anim.fadeout);
             return true;
         }
         if (id == R.id.action_logout) {
-            DoUIParseSyncAdapter.logout(this);
+            DoUIParseSyncAdapter.logout(getApplicationContext());
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
@@ -105,6 +107,7 @@ public class TaskListActivity extends ActionBarActivity
         if (id == R.id.action_connect_to_partner) {
             Intent intent = new Intent(this, LoginActivity.class);
             intent.putExtra(LoginActivity.LOGIN_MODE,LoginActivity.LOGIN_MODE_CONNECT_TO_PARTNER);
+            overridePendingTransition(R.anim.fadein,R.anim.fadeout);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

@@ -7,14 +7,18 @@
     android:visibility="visible">
 
     <TextView
+        android:layout_gravity="top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/connect_to_partner_explanation"
         android:fontFamily="san-serif"
-        android:textSize="18dp"
+        android:textSize="14dp"
+        android:textColor="@color/bright_foreground_inverse_material_light"
+        android:background="@color/item_selected"
         android:id="@+id/connect_to_partner_explanation"/>
 
     <EditText
+        android:layout_marginTop="48dp"
         android:id="@+id/partner_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

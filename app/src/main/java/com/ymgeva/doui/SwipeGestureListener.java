@@ -13,9 +13,9 @@ public class SwipeGestureListener extends GestureDetector.SimpleOnGestureListene
         View.OnTouchListener {
     Context context;
     GestureDetector gDetector;
-    static final int SWIPE_MIN_DISTANCE = 120;
+    static final int SWIPE_MIN_DISTANCE = 50;
     static final int SWIPE_MAX_OFF_PATH = 250;
-    static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    static final int SWIPE_THRESHOLD_VELOCITY = 100;
 
     public SwipeGestureListener() {
         super();

@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -132,7 +131,9 @@ public class ShoppingListFragment extends Fragment implements LoaderManager.Load
         // Restore the previously serialized activated item position.
         if (savedInstanceState != null
                 && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-            setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
+            mActivatedPosition = savedInstanceState.getInt(STATE_ACTIVATED_POSITION);
+            setActivatedPosition(mActivatedPosition);
+
         }
     }
 
@@ -226,6 +227,9 @@ public class ShoppingListFragment extends Fragment implements LoaderManager.Load
         DoUISyncAdapter.syncImmediately(getActivity().getApplicationContext(),DoUIContract.PATH_SHOPPING);
 
         mNewItemLayout.setVisibility(View.GONE);
+        mNewItemUrgent.setChecked(false);
+        mNewItemQuantity.setText("");
+        mNewItemText.setText("");
         mNewItemButton.setVisibility(View.VISIBLE);
 
     }
