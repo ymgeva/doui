@@ -2,4 +2,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.ymgeva.doui.shopping.ShoppingListActivity">
+    <item android:id="@+id/action_add"
+        android:title="@string/action_add"
+        android:icon="@drawable/ic_action_new"
+        app:showAsAction="always"/>
+    <item android:id="@+id/action_edit"
+        android:title="@string/action_edit"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_action_edit"
+        app:showAsAction="always" />
+    <item android:id="@+id/action_done"
+        android:title="@string/action_done"
+        android:orderInCategory="100"
+        android:icon="@drawable/done_action"
+        app:showAsAction="always" />
+    <item android:id="@+id/action_cancel"
+        android:title="@string/action_cancel"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_action_cancel"
+        app:showAsAction="always" />
+    <item android:id="@+id/action_save"
+        android:title="@string/action_done"
+        android:icon="@drawable/ic_action_save"
+        app:showAsAction="always"/>
 </menu>

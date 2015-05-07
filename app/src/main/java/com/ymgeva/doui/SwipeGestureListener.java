@@ -15,7 +15,7 @@ public class SwipeGestureListener extends GestureDetector.SimpleOnGestureListene
     GestureDetector gDetector;
     static final int SWIPE_MIN_DISTANCE = 50;
     static final int SWIPE_MAX_OFF_PATH = 250;
-    static final int SWIPE_THRESHOLD_VELOCITY = 100;
+    static final int SWIPE_THRESHOLD_VELOCITY = 50;
 
     public SwipeGestureListener() {
         super();
@@ -68,9 +68,6 @@ public class SwipeGestureListener extends GestureDetector.SimpleOnGestureListene
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-
-
-
         return gDetector.onTouchEvent(event);
     }
 

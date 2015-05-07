@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ymgeva.doui.R;
+import com.ymgeva.doui.uiobjects.CustomCheckBox;
 
 /**
  * Created by Yoav on 4/26/15.
@@ -25,14 +26,12 @@ public class ShoppingListAdapter extends CursorAdapter {
     private Context mContext;
 
     public static class ViewHolder {
-        public final TextView mQuantityView;
         public final TextView mTitleTextView;
-        public final CheckBox mDoneCheckBox;
+        public final CustomCheckBox mDoneCheckBox;
         public long mId;
 
         public ViewHolder(View view) {
-            mDoneCheckBox = (CheckBox)view.findViewById(R.id.shopping_item_done_checkbox);
-            mQuantityView = (TextView)view.findViewById(R.id.shopping_item_quantity_text_view);
+            mDoneCheckBox = (CustomCheckBox)view.findViewById(R.id.shopping_item_done_checkbox);
             mTitleTextView = (TextView)view.findViewById(R.id.shopping_item_title_text_view);
         }
 
@@ -58,7 +57,6 @@ public class ShoppingListAdapter extends CursorAdapter {
 
         viewHolder.mId = cursor.getLong(ShoppingListFragment.COL_ID);
 
-        viewHolder.mQuantityView.setText(""+cursor.getInt(ShoppingListFragment.COL_QUANTITY));
         viewHolder.mTitleTextView.setText(cursor.getString(ShoppingListFragment.COL_TITLE));
 
         boolean isUrgent = cursor.getInt(ShoppingListFragment.COL_URGENT) > 0;
@@ -68,20 +66,16 @@ public class ShoppingListAdapter extends CursorAdapter {
             viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.primary_text_disabled_material_light));
 
-            viewHolder.mQuantityView.setPaintFlags(viewHolder.mQuantityView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.primary_text_disabled_material_light));
         }
         else {
             viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
             viewHolder.mTitleTextView.setPaintFlags(viewHolder.mTitleTextView.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
 
             if (isUrgent) {
-                viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.urgent_item));
                 viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.urgent_item));
             }
             else {
                 viewHolder.mTitleTextView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
-                viewHolder.mQuantityView.setTextColor(context.getResources().getColor(R.color.primary_dark_material_light));
             }
 
         }

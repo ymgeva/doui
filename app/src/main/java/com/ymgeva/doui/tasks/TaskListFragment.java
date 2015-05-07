@@ -103,6 +103,7 @@ public class TaskListFragment extends Fragment implements LoaderManager.LoaderCa
 
             }
         });
+
         mListView.setOnTouchListener(new SwipeGestureListener(getActivity()) {
             @Override
             public void swipeRight(int x,int y) {
