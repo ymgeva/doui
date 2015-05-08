@@ -1,5 +1,6 @@
 package com.ymgeva.doui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -13,7 +14,7 @@ import com.ymgeva.doui.sync.DoUISyncAdapter;
 import com.ymgeva.doui.tasks.TaskListActivity;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

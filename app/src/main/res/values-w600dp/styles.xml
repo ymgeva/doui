@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="SingleFragmentActivity" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="SingleFragmentActivity" parent="AppTheme.Base">
 
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowIsFloating">true</item>

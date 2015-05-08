@@ -19,6 +19,7 @@ public class ConnectToPartnerFragment extends Fragment {
     public static final String PARTNER_NAME = "partner_name";
     public static final String PARTNER_EMAIL = "partner_email";
     public static final String SHARED_PASSWORD = "shared_password";
+    public static final String NEW_PARTNER = "new_partner";
 
     private ConnectToPartnerFragmentInteractionListener mListener;
 
@@ -44,11 +45,21 @@ public class ConnectToPartnerFragment extends Fragment {
         args.putString(PARTNER_NAME,partnerName);
         args.putString(PARTNER_EMAIL,partnerEmail);
         args.putString(SHARED_PASSWORD,sharedPassword);
+        args.putBoolean(NEW_PARTNER,true);
 
         ConnectToPartnerFragment fragment = new ConnectToPartnerFragment();
         fragment.setArguments(args);
         return fragment;
 
+    }
+
+    public static ConnectToPartnerFragment newInstance() {
+        Bundle args = new Bundle();
+        args.putBoolean(NEW_PARTNER,false);
+
+        ConnectToPartnerFragment fragment = new ConnectToPartnerFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -60,16 +71,17 @@ public class ConnectToPartnerFragment extends Fragment {
 
         mExplanationView = (TextView) rootView.findViewById(R.id.connect_to_partner_explanation);
         Bundle bundle = this.getArguments();
+
+        isPartnerPending = bundle.getBoolean(NEW_PARTNER,false);
+
         mPartnerName = bundle != null ? bundle.getString(PARTNER_NAME) : null;
         if (mPartnerName != null) {
-            isPartnerPending = true;
             mPartnerEmail = bundle.getString(PARTNER_EMAIL);
             mSharedPassword = bundle.getString(SHARED_PASSWORD);
 
             mExplanationView.setText(getActivity().getString(R.string.enter_password_from_mail,mPartnerName));
         }
         else {
-            isPartnerPending = false;
             mExplanationView.setText(getActivity().getString(R.string.enter_password_for_partner));
         }
 

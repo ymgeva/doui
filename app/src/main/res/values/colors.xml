@@ -14,5 +14,9 @@
     <color name="item_selected">#2DAAE2</color>
     <color name="urgent_item">#FF0000</color>
 
+    <color name="doui_blue">#1288B6</color>
+    <color name="doui_green">#6BB643</color>
+    <color name="doui_blue_light">#1C97D9</color>
+
 
 </resources>

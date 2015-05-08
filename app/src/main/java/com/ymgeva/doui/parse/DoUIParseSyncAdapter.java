@@ -514,6 +514,9 @@ public class DoUIParseSyncAdapter {
                 if (e != null) {
                     e.printStackTrace();
                 }
+                else {
+
+                }
             }
         });
     }

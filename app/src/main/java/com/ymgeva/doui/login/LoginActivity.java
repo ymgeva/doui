@@ -163,14 +163,19 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
         query.whereEqualTo(ConnectToPartnerFragment.PARTNER_EMAIL,email);
         try {
             List<ParseUser> users = query.find();
+            ConnectToPartnerFragment fragment;
             if (users != null && users.size() > 0) {
                 mPartner = users.get(0);
-                ConnectToPartnerFragment fragment = ConnectToPartnerFragment.newInstance(mPartner.getString("name"),mPartner.getEmail(),mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
-                getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.container, fragment)
-                        .commit();
+                fragment = ConnectToPartnerFragment.newInstance(mPartner.getString("name"),mPartner.getEmail(),mPartner.getString(ConnectToPartnerFragment.SHARED_PASSWORD));
+
             }
+            else {
+                fragment = ConnectToPartnerFragment.newInstance();
+            }
+            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, fragment)
+                    .commit();
         } catch (ParseException e) {
             e.printStackTrace();
         }

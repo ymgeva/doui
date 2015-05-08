@@ -120,4 +120,6 @@
     <string name="login_failed">Login failed for unexpected reason</string>
     <string name="logging_in">Logging in</string>
     <string name="signing_up">Signing Up</string>
+    <string name="connected_to_partner">You are now connected to %s.</string>
+    <string name="connected_to_partner_text">Go on and set tasks for them!</string>
 </resources>

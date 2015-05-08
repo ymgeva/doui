@@ -76,13 +76,17 @@ public class NotificationsService extends IntentService {
     public static final String ACTION_NOTIFY_TASK_DONE = "com.ymgeva.doui.notifications.action.notify_task_done";
     public static final String ACTION_URGENT_TASK = "com.ymgeva.doui.notifications.action.urgent_task";
     public static final String ACTION_URGENT_SHOPPING = "com.ymgeva.doui.notifications.action.urgent_shopping";
+    public static final String ACTION_PARTNER_CONNECTED = "com.ymgeva.doui.notification.action.partner_connected";
+    public static final String ACTION_DISMISS_PARTNER_NOTIFICATION = "com.ymgeva.doui.notifications.action.dismiss_shopping";
 
 
     public static final String PARAM_ID = "com.ymgeva.doui.notifications.extra.PARAM_ID";
     public static final String PARAM_TASK_PARSE_ID = "task_parse_id";
+    public static final String PARAM_PARTNER_NAME = "partner_name";
 
     private static final int TASKS_TAG_OFFSET = 300000;
     private static final int SHOPPING_TAG_OFFSET = 400000;
+    private static final int PARTNER_OFFSET = 500000;
 
 
     public static void startWithAction(Context context,String action) {
@@ -141,8 +145,40 @@ public class NotificationsService extends IntentService {
                 notifyUrgentShopping(parseId);
             } else if (ACTION_DISMISS_SHOPPING_NOTIFICATION.equals(action)) {
                 cancelShoppingNotification(this,(int) taskId);
+            } else if (ACTION_PARTNER_CONNECTED.equals(action)) {
+                notifyPartnerConnected(intent.getStringExtra(PARAM_PARTNER_NAME));
             }
         }
+    }
+
+    private void notifyPartnerConnected(String partnerName) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.doui_white)
+                        .setContentTitle(getString(R.string.connected_to_partner,partnerName))
+                        .setContentText(getString(R.string.connected_to_partner_text))
+                        .setDefaults(Notification.DEFAULT_ALL);
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+        mBuilder.setLargeIcon(largeIcon);
+
+        Intent resultIntent = new Intent(this, MainActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        Intent dismissIntent = new Intent(this, NotificationsService.class);
+
+        dismissIntent.setAction(ACTION_DISMISS_PARTNER_NOTIFICATION);
+        PendingIntent piDismiss = PendingIntent.getService(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.addAction(R.drawable.action_notification_dismiss, getString(R.string.dismiss), piDismiss);
+
+        NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(SHOPPING_TAG_OFFSET, mBuilder.build());
     }
 
     private void notifyUrgentShopping(String parseId) {
