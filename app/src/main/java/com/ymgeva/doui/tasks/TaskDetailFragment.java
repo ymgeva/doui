@@ -26,6 +26,7 @@ import com.ymgeva.doui.Utility;
 import com.ymgeva.doui.data.DoUIContract;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
+import com.ymgeva.doui.uiobjects.CheckableImageView;
 
 public class TaskDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -46,8 +47,8 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
     private TextView mTimeView;
     private ImageView mCreatedByView;
     private ImageView mAssignedToView;
-    private CheckBox mReminder;
-    private CheckBox mNotifyWhenDone;
+    private CheckableImageView mReminder;
+    private CheckableImageView mNotifyWhenDone;
     private TextView mReminderTimeView;
 
     public static final String[] TASK_COLUMNS = {
@@ -145,8 +146,8 @@ public class TaskDetailFragment extends Fragment implements LoaderManager.Loader
         mReminderTimeView = (TextView)rootView.findViewById(R.id.task_detail_reminder_time);
         mCreatedByView = (ImageView)rootView.findViewById(R.id.task_detail_from_image);
         mAssignedToView = (ImageView)rootView.findViewById(R.id.task_detail_to_image);
-        mReminder = (CheckBox)rootView.findViewById(R.id.task_detail_reminder_checkbox);
-        mNotifyWhenDone = (CheckBox)rootView.findViewById(R.id.task_detail_notify_checkbox);
+        mReminder = (CheckableImageView)rootView.findViewById(R.id.task_detail_reminder_checkbox);
+        mNotifyWhenDone = (CheckableImageView)rootView.findViewById(R.id.task_detail_notify_checkbox);
         mDateView = (TextView)rootView.findViewById(R.id.task_detail_date);
         mTimeView = (TextView)rootView.findViewById(R.id.task_detail_time);
 

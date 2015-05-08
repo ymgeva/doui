@@ -41,6 +41,7 @@ import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
 import com.ymgeva.doui.parse.SyncDoneReceiver;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
+import com.ymgeva.doui.uiobjects.CheckableImageView;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -115,8 +116,8 @@ public class EditTaskActivity extends ActionBarActivity {
         private ImageView mCreatedByView;
         private ImageView mAssignedToView;
         private TextView mDescriptionView;
-        private CheckBox mReminderView;
-        private CheckBox mNotifyWhenDoneView;
+        private CheckableImageView mReminderView;
+        private CheckableImageView mNotifyWhenDoneView;
         private TextView mReminderTimeView;
 
         public EditTaskFragment() {
@@ -133,9 +134,9 @@ public class EditTaskActivity extends ActionBarActivity {
             mTimeView = (TextView) rootView.findViewById(R.id.edit_task_time);
             mCreatedByView = (ImageView) rootView.findViewById(R.id.edit_task_from_image);
             mAssignedToView = (ImageView) rootView.findViewById(R.id.edit_task_to_image);
-            mReminderView = (CheckBox) rootView.findViewById(R.id.edit_task_reminder_checkbox);
+            mReminderView = (CheckableImageView) rootView.findViewById(R.id.edit_task_reminder_checkbox);
             mReminderTimeView = (TextView) rootView.findViewById(R.id.edit_task_reminder_time);
-            mNotifyWhenDoneView = (CheckBox) rootView.findViewById(R.id.edit_task_notify_checkbox);
+            mNotifyWhenDoneView = (CheckableImageView) rootView.findViewById(R.id.edit_task_notify_when_done);
 
             Intent intent = getActivity().getIntent();
             isNewTaskMode = intent.getBooleanExtra(IS_NEW_TASK_SETTING, true);
@@ -188,7 +189,9 @@ public class EditTaskActivity extends ActionBarActivity {
                 public void onClick(View view) {
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTime(new Date(mDate));
-                    DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+                    DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
+                            R.style.Theme_AlertDialog,
+                            new DatePickerDialog.OnDateSetListener() {
 
                         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                             Calendar newCal = Calendar.getInstance();
@@ -213,7 +216,9 @@ public class EditTaskActivity extends ActionBarActivity {
                 public void onClick(View view) {
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTime(new Date(mDate));
-                    TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(),new TimePickerDialog.OnTimeSetListener() {
+                    TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(),
+                            R.style.Theme_AlertDialog,
+                            new TimePickerDialog.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                             Calendar newCal = Calendar.getInstance();
@@ -235,7 +240,9 @@ public class EditTaskActivity extends ActionBarActivity {
                 public void onClick(View view) {
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTime(new Date(mReminderTime));
-                    TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(),new TimePickerDialog.OnTimeSetListener() {
+                    TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(),
+                            R.style.Theme_AlertDialog,
+                            new TimePickerDialog.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                             Calendar newCal = Calendar.getInstance();

@@ -12,9 +12,13 @@
         <!-- colorPrimaryDark is used for the status bar -->
         <item name="colorPrimaryDark">@color/doui_blue_light</item>
 
+        <item name="colorControlNormal">#c5c5c5</item>
+        <item name="colorControlActivated">@color/doui_blue</item>
+        <item name="colorControlHighlight">@color/doui_blue</item>
+
         <!-- colorAccent is used as the default value for colorControlActivated
-             which is used to tint widgets
-        <item name="colorAccent">@color/colorAccent</item> -->
+             which is used to tint widgets -->
+        <item name="colorAccent">@color/doui_blue</item>
 
         <!-- You can also set colorControlNormal, colorControlActivated
              colorControlHighlight & colorSwitchThumbNormal. -->
@@ -41,6 +45,10 @@
     </style>
 
     <style name="SingleFragmentActivity" parent="AppTheme.Base">
+
+    </style>
+
+    <style name="Theme.AlertDialog" parent="android:Theme.Holo.Light.Dialog">
 
     </style>
 

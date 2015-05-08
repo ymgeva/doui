@@ -39,7 +39,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+       >
         <ImageView
             android:layout_width="60dp"
             android:layout_height="60dp"
@@ -70,42 +71,59 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        >
 
-        <LinearLayout
+        <com.ymgeva.doui.uiobjects.CheckableImageView
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:id="@+id/task_detail_reminder_checkbox"
+            android:src="@drawable/done_action"
+            android:tint="@color/material_blue_grey_800"
+            android:alpha="0.5"
+
+            />
+
+        <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_gravity="left"
-            >
-            <CheckBox
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/task_detail_reminder_checkbox"
-                android:text="@string/reminder"
-                android:enabled="false"/>
+            android:text="@string/reminder"
+            android:alpha="0.5"
+            android:layout_gravity="bottom"
+            android:textSize="16sp"
+            />
+
+        <com.ymgeva.doui.uiobjects.CheckableImageView
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:id="@+id/task_detail_notify_checkbox"
+            android:alpha="0.5"
+            android:src="@drawable/done_action"
+            android:tint="@color/material_blue_grey_800"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/notify"
+            android:alpha="0.5"
+            android:textSize="16sp"
+            />
+    </LinearLayout>
 
 
-            <TextView
+
+    <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/task_detail_reminder_time"
-                android:textSize="16dp"
-                android:gravity="left"
-                android:paddingLeft="20dp"
+                android:textSize="16sp"
+                android:gravity="center_vertical"
+
                 />
-        </LinearLayout>
 
-        <CheckBox
-            android:layout_gravity="right"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:id="@+id/task_detail_notify_checkbox"
-            android:enabled="false"
-            android:text="@string/notify"/>
 
-        </LinearLayout>
 
 </LinearLayout>
