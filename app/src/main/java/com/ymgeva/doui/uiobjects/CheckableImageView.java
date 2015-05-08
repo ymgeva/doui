@@ -9,22 +9,22 @@ import android.widget.ImageView;
 /**
  * Created by Yoav on 5/7/15.
  */
-public class CustomCheckBox extends ImageView implements Checkable {
+public class CheckableImageView extends ImageView implements Checkable {
 
     private boolean mChecked;
     private Drawable mDrawable;
 
-    public CustomCheckBox(Context context) {
+    public CheckableImageView(Context context) {
         super(context);
         mDrawable = getDrawable();
     }
 
-    public CustomCheckBox(Context context, AttributeSet attrs) {
+    public CheckableImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mDrawable = getDrawable();
     }
 
-    public CustomCheckBox(Context context, AttributeSet attrs, int defStyleAttr) {
+    public CheckableImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mDrawable = getDrawable();
     }
@@ -38,7 +38,7 @@ public class CustomCheckBox extends ImageView implements Checkable {
     @Override
     public void setChecked(boolean b) {
         mChecked = b;
-        setImageDrawable(b ? mDrawable : null);
+        setAlpha(b ? 1f : 0.2f);
     }
 
     @Override

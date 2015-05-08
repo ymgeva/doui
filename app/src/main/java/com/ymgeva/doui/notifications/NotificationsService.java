@@ -147,6 +147,8 @@ public class NotificationsService extends IntentService {
                 cancelShoppingNotification(this,(int) taskId);
             } else if (ACTION_PARTNER_CONNECTED.equals(action)) {
                 notifyPartnerConnected(intent.getStringExtra(PARAM_PARTNER_NAME));
+            } else if (ACTION_DISMISS_SHOPPING_NOTIFICATION.equals(action)) {
+                cancelNotificaion(this,PARTNER_OFFSET);
             }
         }
     }

@@ -6,17 +6,6 @@
     android:id="@+id/connect_to_partner"
     android:visibility="visible">
 
-    <TextView
-        android:layout_gravity="top"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/connect_to_partner_explanation"
-        android:fontFamily="san-serif"
-        android:textSize="14dp"
-        android:textColor="@color/bright_foreground_inverse_material_light"
-        android:background="@color/item_selected"
-        android:id="@+id/connect_to_partner_explanation"/>
-
     <EditText
         android:layout_marginTop="48dp"
         android:id="@+id/partner_email"
@@ -41,21 +30,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/com_parse_ui_large_vertical_spacing"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/connect_button"
-            style="@style/ParseLoginUI.Button"
+            style="@style/LoginButton"
             android:text="@string/connect_button_label"
             android:layout_height="wrap_content"
-            android:layout_width="match_parent"/>
+            android:layout_weight="0.5"/>
 
         <Button
             android:id="@+id/skip_button"
-            style="@style/ParseLoginUI.Button"
+            style="@style/LoginButton"
             android:text="@string/skip_button_label"
             android:layout_height="wrap_content"
-            android:layout_width="match_parent"/>
+            android:layout_weight="0.5"/>
 
 
     </LinearLayout>

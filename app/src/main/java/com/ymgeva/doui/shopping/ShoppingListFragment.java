@@ -22,7 +22,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -34,6 +33,7 @@ import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
 import com.ymgeva.doui.parse.SyncDoneReceiver;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
+import com.ymgeva.doui.uiobjects.CheckableImageView;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -71,7 +71,7 @@ public class ShoppingListFragment extends Fragment implements LoaderManager.Load
     private ListView mListView;
     private LinearLayout mNewItemLayout;
     private EditText mNewItemText;
-    private CheckBox mNewItemUrgent;
+    private CheckableImageView mNewItemUrgent;
 
     private ActionMode mActionMode;
     private Menu mMenu;
@@ -137,7 +137,13 @@ public class ShoppingListFragment extends Fragment implements LoaderManager.Load
         mNewItemLayout = (LinearLayout) rootView.findViewById(R.id.layout_new_shopping);
 
         mNewItemText = (EditText) rootView.findViewById(R.id.new_shopping_title);
-        mNewItemUrgent = (CheckBox) rootView.findViewById(R.id.new_shopping_urgent_checkbox);
+        mNewItemUrgent = (CheckableImageView) rootView.findViewById(R.id.new_shopping_urgent_checkbox);
+        mNewItemUrgent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //view.performClick();
+            }
+        });
 
 
         return rootView;

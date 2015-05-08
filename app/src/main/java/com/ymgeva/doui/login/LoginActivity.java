@@ -1,5 +1,6 @@
 package com.ymgeva.doui.login;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
@@ -50,6 +51,9 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setCustomView(R.layout.login_action_bar_layout);
 
         if (savedInstanceState == null) {
 
@@ -187,15 +191,7 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
 
     @Override
     public void onSkipClicked() {
-        new AlertDialog.Builder(this).
-                setMessage(R.string.connect_to_partner_skipped).
-                setCancelable(false).
-                setPositiveButton(R.string.ok,new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        goToMainScreen();
-                    }
-                }).show();
+        showFinishDialog(R.string.connect_to_partner_skipped);
     }
 
     @Override
@@ -244,9 +240,23 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
                 }
             }
         });
-        goToMainScreen();
+        showFinishDialog(R.string.email_sent_to_partner);
     }
 
+
+    private void showFinishDialog(int messageId) {
+        new AlertDialog.Builder(this).
+                setMessage(messageId).
+                setCancelable(false).
+                setPositiveButton(R.string.ok,new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        goToMainScreen();
+                    }
+                }).show();
+
+
+    }
     private void goToMainScreen() {
         DoUISyncAdapter.onAccountCreated(getApplicationContext());
         Intent intent = new Intent(this,TaskListActivity.class);

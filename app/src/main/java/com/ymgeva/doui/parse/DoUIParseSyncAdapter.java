@@ -103,6 +103,7 @@ public class DoUIParseSyncAdapter {
 
     public static final String USER_ID = "user_id";
     public static final String PARTNER_ID = "partner_id";
+    public static final String PARTNER_NAME = "partner_name";
 
     private static DoUIParseSyncAdapter instance;
     public static DoUIParseSyncAdapter getInstance() {
@@ -504,21 +505,39 @@ public class DoUIParseSyncAdapter {
         installation.saveInBackground();
     }
 
-    public static void updatePartner(String partnerId) {
+    public static void updatePartner(final String partnerId, final Context context) {
 
         final ParseUser me = ParseUser.getCurrentUser();
-        me.put(PARTNER_ID, partnerId);
-        me.saveInBackground(new SaveCallback() {
+        ParseQuery<ParseUser> query = ParseUser.getQuery();
+        query.whereEqualTo(PARTNER_ID,partnerId);
+        query.getFirstInBackground(new GetCallback<ParseUser>() {
             @Override
-            public void done(ParseException e) {
-                if (e != null) {
-                    e.printStackTrace();
+            public void done(ParseUser partner, ParseException e) {
+                if (e == null) {
+                    me.put(PARTNER_ID, partnerId);
+                    final String partnerName = partner.getString(PARTNER_NAME);
+                    me.put(PARTNER_NAME,partnerName);
+                    me.saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if (e != null) {
+                                e.printStackTrace();
+                            }
+                            else {
+                                Intent intent = new Intent(context,NotificationsService.class);
+                                intent.setAction(NotificationsService.ACTION_PARTNER_CONNECTED);
+                                intent.putExtra(NotificationsService.PARAM_PARTNER_NAME,partnerName);
+                                context.startService(intent);
+                            }
+                        }
+                    });
                 }
                 else {
-
+                    e.printStackTrace();
                 }
             }
         });
+
     }
 
     public static void sendPush(int pushCode,String objectId) {

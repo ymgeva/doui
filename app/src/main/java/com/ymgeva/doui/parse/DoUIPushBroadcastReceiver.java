@@ -57,7 +57,7 @@ public class DoUIPushBroadcastReceiver extends ParsePushBroadcastReceiver {
 
         switch (pushCode) {
             case PUSH_CODE_UPDATE_PARTNER:{
-                DoUIParseSyncAdapter.updatePartner(objectId);
+                DoUIParseSyncAdapter.updatePartner(objectId,context.getApplicationContext());
                 break;
             }
             case PUSH_CODE_NOTIFY_DONE:

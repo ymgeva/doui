@@ -8,11 +8,22 @@
     android:gravity="center"
     android:orientation="vertical">
 
-    <!--<include-->
-    <!--layout="@layout/com_parse_ui_parse_login_app_logo"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_weight="0.5" />-->
+    <include
+        layout="@layout/layout_app_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5" />
+
+    <TextView
+        android:layout_gravity="top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/connect_to_partner_explanation"
+        android:textSize="14sp"
+        android:id="@+id/connect_to_partner_explanation"/>
+
+    <!--android:textColor="@color/bright_foreground_inverse_material_light"-->
+    <!--android:background="@color/item_selected"-->
 
     <include
         layout="@layout/connect_to_partner_form"

@@ -102,7 +102,9 @@
     <string name="title_activity_shopping_list">Shopping List</string>
 
     <string name="enter_password_from_mail">Please enter %s\'s email and the password that he emailed you</string>
-    <string name="enter_password_for_partner">Please enter the email of the person you want to share your tasks with.\nThe shared password you enter here will be emailed to your partner to fill when he signs up</string>
+    <string name="enter_password_for_partner1">Please enter the email of the person you want to share your tasks with.</string>
+    <string name="enter_password_for_partner2">The shared password you enter here will be emailed to your partner to fill when he signs up</string>
+
     <string name="connect_to_partner_fields_empty_warning">Please fill both fields!</string>
     <string name="connect_to_partner_details_dont_match">The email and shared password do not match the ones %s entered, please recheck your email</string>
     <string name="action_shopping">Grocery List</string>
@@ -122,4 +124,11 @@
     <string name="signing_up">Signing Up</string>
     <string name="connected_to_partner">You are now connected to %s.</string>
     <string name="connected_to_partner_text">Go on and set tasks for them!</string>
+    <string name="welcome">Welcome to doUI</string>
+    <string name="welcome_to_doui">Login to doUI</string>
+    <string name="please_login">Please login or create a new account</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in_short">Login</string>
+    <string name="action_new_user">Sign Up</string>
 </resources>

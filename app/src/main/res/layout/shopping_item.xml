@@ -2,9 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="60dp"
     android:background="@drawable/touch_selector"
+    android:gravity="center_vertical"
     >
+    <ImageView
+        android:layout_width="12dp"
+        android:layout_height="match_parent"
+        android:src="@drawable/important"
+        android:visibility="visible"
+        android:id="@+id/important_image"/>
+
     <TextView
         android:gravity="center_vertical"
         android:layout_width="0dp"
@@ -14,12 +22,13 @@
         android:text="Cat food"
         android:textSize="20sp"/>
 
-    <com.ymgeva.doui.uiobjects.CustomCheckBox
-        android:layout_width="0dp"
+    <com.ymgeva.doui.uiobjects.CheckableImageView
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:id="@+id/shopping_item_done_checkbox"
         android:src="@drawable/done_action"
         android:tint="@color/material_blue_grey_800"
-        android:layout_weight="1"/>
+        android:layout_marginRight="16dp"
+        />
 
 </LinearLayout>

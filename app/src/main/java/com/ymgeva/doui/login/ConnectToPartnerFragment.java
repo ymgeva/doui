@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,7 +83,10 @@ public class ConnectToPartnerFragment extends Fragment {
             mExplanationView.setText(getActivity().getString(R.string.enter_password_from_mail,mPartnerName));
         }
         else {
-            mExplanationView.setText(getActivity().getString(R.string.enter_password_for_partner));
+            String styledText = getActivity().getString(R.string.enter_password_for_partner1) +
+                    "<br />" +
+                    getActivity().getString(R.string.enter_password_for_partner2);
+            mExplanationView.setText(Html.fromHtml(styledText));
         }
 
         mEmailField = (EditText) rootView.findViewById(R.id.partner_email);

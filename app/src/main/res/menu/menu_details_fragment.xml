@@ -10,7 +10,7 @@
         app:showAsAction="always" />
     <item android:id="@+id/action_done"
         android:title="@string/action_done"
-        android:icon="@drawable/done_button"
+        android:icon="@drawable/done_action"
         app:showAsAction="always"/>
 
 </menu>
