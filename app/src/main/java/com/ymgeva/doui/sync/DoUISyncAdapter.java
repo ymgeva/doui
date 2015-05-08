@@ -143,6 +143,13 @@ public class DoUISyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
+    public static void removeSyncAccount(Context context) {
+
+        ContentResolver.cancelSync(getSyncAccount(context),context.getString(R.string.content_authority));
+        ContentResolver.removePeriodicSync(getSyncAccount(context),context.getString(R.string.content_authority),new Bundle());
+
+    }
+
     public static void onAccountCreated(Context context) {
 
         DoUISyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);

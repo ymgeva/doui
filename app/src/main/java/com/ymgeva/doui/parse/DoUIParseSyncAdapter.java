@@ -35,6 +35,7 @@ import com.ymgeva.doui.notifications.NotificationsService;
 import com.ymgeva.doui.parse.items.GeneralItem;
 import com.ymgeva.doui.parse.items.ShoppingItem;
 import com.ymgeva.doui.parse.items.TaskItem;
+import com.ymgeva.doui.sync.DoUISyncAdapter;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -154,11 +155,11 @@ public class DoUIParseSyncAdapter {
             Log.e(LOG_TAG,"No network access");
             return false;
         }
-//        try {
-//            Thread.sleep(3000,0);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Thread.sleep(3000,0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         ParseUser user = ParseUser.getCurrentUser();
         if (user == null) {
@@ -177,6 +178,7 @@ public class DoUIParseSyncAdapter {
         if (!canSyncToParse(context)) {
             Log.e(LOG_TAG,"Sync is not possible");
             notifyOnDone(context,DoUIContract.PATH_TASKS);
+            return;
         }
 
         Cursor cursor = context.getContentResolver().query(DoUIContract.TaskItemEntry.CONTENT_URI, TASK_COLUMNS, DoUIContract.TaskItemEntry.COLUMN_IS_DIRTY + " = 1", null, null);
@@ -372,6 +374,7 @@ public class DoUIParseSyncAdapter {
         if (!canSyncToParse(context)) {
             Log.e(LOG_TAG,"Sync is not possible");
             notifyOnDone(context,DoUIContract.PATH_SHOPPING);
+            return;
         }
 
         Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI, SHOPPING_COLUMNS, DoUIContract.ShoppingItemEntry.COLUMN_IS_DIRTY + " = 1", null, null);
@@ -569,6 +572,7 @@ public class DoUIParseSyncAdapter {
                 }
                 DbHelper helper = new DbHelper(context);
                 helper.onUpgrade(helper.getWritableDatabase(), 0, 0);
+                DoUISyncAdapter.removeSyncAccount(context);
             }
         });
 

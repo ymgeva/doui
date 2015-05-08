@@ -25,17 +25,17 @@ public class ParseErrorHandler {
         switch (e.getCode()) {
             case ParseException.INVALID_SESSION_TOKEN: {
                 Log.e(LOG_TAG,"FOOBAR");
-                DoUIParseSyncAdapter.logout(context);
-                new AlertDialog.Builder(context.getApplicationContext()).
-                        setMessage(R.string.please_relogin).
-                        setCancelable(false).
-                        setPositiveButton(R.string.ok,new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
-                                context.startActivity(intent);
-                            }
-                        }).show();
+//                DoUIParseSyncAdapter.logout(context);
+//                new AlertDialog.Builder(context.getApplicationContext()).
+//                        setMessage(R.string.please_relogin).
+//                        setCancelable(false).
+//                        setPositiveButton(R.string.ok,new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//                                Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
+//                                context.startActivity(intent);
+//                            }
+//                        }).show();
             }
             default: {
                 e.printStackTrace();
