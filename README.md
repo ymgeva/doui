@@ -1,7 +1,7 @@
 # doUI
-You know how it is when you and your husband / wife alwasy argu about who was supposed to do what and when?
+You know how it is when you and your husband / wife always argue about who was supposed to do what and when?
 You always have to remind you partner (or the other way way around) that it's his day to pick up the kids,
-or that you already told them 1000 times that today's yuor dentist appointmant and you'l be home late, but they keep forgetting...
+or that you already told them 1000 times that today's your dentist appointmant and you'l be home late, but they keep forgetting...
 
 Well doUI is about solving this issue for good.
 
