@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="AppTheme.Base">
+        <!-- Customize your theme here. -->
+    </style>
+
+
+    <style name="SingleFragmentActivity" parent="AppTheme.Base">
+
+    </style>
+
+    <style name="Theme.AlertDialog" parent="android:Theme.Material.Light.Dialog.Alert">
+        <item name="android:colorPrimary">@color/doui_blue</item>
+        <item name="android:colorPrimaryDark">@color/doui_blue</item>
+        <item name="android:colorAccent">@color/doui_blue</item>
+    </style>
+
+</resources>
