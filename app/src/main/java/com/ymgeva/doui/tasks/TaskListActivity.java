@@ -32,6 +32,8 @@ public class TaskListActivity extends ActionBarActivity
     private SwipeRefreshLayout mSwipeLayout;
     private TaskListReceiver mReceiver;
 
+    public static final String EXTRA_IN_SYNC = "com.ymgeva.doui.tasklist.action.in_sync";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +71,15 @@ public class TaskListActivity extends ActionBarActivity
             Intent shoppingIntent = new Intent(this,ShoppingListActivity.class);
             startActivity(shoppingIntent);
             overridePendingTransition(R.anim.fadein,R.anim.fadeout);
+        } else if(intent.getBooleanExtra(EXTRA_IN_SYNC,false)) {
+
+            mSwipeLayout.post(new Runnable() {
+                @Override public void run() {
+                    mSwipeLayout.setRefreshing(true);
+                }
+            });
         }
+
     }
 
     @Override

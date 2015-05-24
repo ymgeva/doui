@@ -43,6 +43,10 @@ public class MainActivity extends Activity {
                     intent.putExtra(NotificationsService.PARAM_ID,taskId);
                 }
             }
+            else {
+                DoUISyncAdapter.syncImmediately(getApplicationContext(),null);
+                intent.putExtra(TaskListActivity.EXTRA_IN_SYNC,true);
+            }
         }
         startActivity(intent);
         finish();

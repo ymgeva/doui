@@ -1,5 +1,7 @@
 package com.ymgeva.doui.parse;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,8 +11,11 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.ValueCallback;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -25,6 +30,7 @@ import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
+import com.parse.ParseSession;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.ymgeva.doui.MainActivity;
@@ -36,6 +42,7 @@ import com.ymgeva.doui.parse.items.GeneralItem;
 import com.ymgeva.doui.parse.items.ShoppingItem;
 import com.ymgeva.doui.parse.items.TaskItem;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
+import com.ymgeva.doui.sync.DoUISyncService;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -114,7 +121,7 @@ public class DoUIParseSyncAdapter {
         return instance;
     }
 
-    private Map<String,Integer> mSyncDoneActions;
+    private List<ParseQuery> runningQueries;
 
     private DoUIParseSyncAdapter() {
     }
@@ -137,15 +144,25 @@ public class DoUIParseSyncAdapter {
                 }
             }
         });
-
+        runningQueries = new ArrayList<>();
     }
 
     public static String getUserId() {
-        return ParseUser.getCurrentUser().getObjectId();
+        ParseUser user = ParseUser.getCurrentUser();
+        if (user == null) {
+            Log.e(LOG_TAG,"getUserId = User is null!");
+            return null;
+        }
+        return user.getObjectId();
     }
 
     public static String getPartnerId() {
-        return ParseUser.getCurrentUser().getString(PARTNER_ID);
+        ParseUser user = ParseUser.getCurrentUser();
+        if (user == null) {
+            Log.e(LOG_TAG,"getPartnerId = User is null!");
+            return null;
+        }
+        return user.getString(PARTNER_ID);
     }
 
     public boolean canSyncToParse(Context context) {
@@ -171,6 +188,21 @@ public class DoUIParseSyncAdapter {
             return false;
         }
         return true;
+    }
+
+    private void syncDone(ParseQuery query) {
+        runningQueries.remove(query);
+    }
+
+    private void startSync(ParseQuery query) {
+        runningQueries.add(query);
+    }
+
+    private void cancelSync() {
+        for (ParseQuery query : runningQueries) {
+            query.cancel();
+        }
+        runningQueries.clear();
     }
 
     public void syncTasks(final Context context) {
@@ -230,6 +262,8 @@ public class DoUIParseSyncAdapter {
             notifyOnDone(context,DoUIContract.PATH_TASKS);
             ParseErrorHandler.handleParseException(e,context);
 
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Save Failed for unknown reason",e);
         }
     }
 
@@ -263,6 +297,7 @@ public class DoUIParseSyncAdapter {
 
         List<TaskItem> taskItems = null;
         try {
+            startSync(query);
             taskItems = query.find();
             List<ContentValues> newValues = new ArrayList<ContentValues>();
             int updated = 0;
@@ -314,6 +349,9 @@ public class DoUIParseSyncAdapter {
 
         } catch (ParseException e) {
             ParseErrorHandler.handleParseException(e, context);
+        }
+        finally {
+            syncDone(query);
         }
 
         notifyOnDone(context,DoUIContract.PATH_TASKS);
@@ -422,6 +460,8 @@ public class DoUIParseSyncAdapter {
             Log.e(LOG_TAG, "Failed to save shopping items, will not download.", e);
             notifyOnDone(context,DoUIContract.PATH_SHOPPING);
             ParseErrorHandler.handleParseException(e, context);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Save Failed for unknown reason", e);
         }
     }
 
@@ -442,7 +482,7 @@ public class DoUIParseSyncAdapter {
         queries.add(queryCreatedByPartner);
 
         ParseQuery<ShoppingItem> query = ParseQuery.or(queries);
-        //query.whereNotEqualTo(DoUIContract.ShoppingItemEntry.COLUMN_DONE,true);
+        query.whereNotEqualTo(DoUIContract.ShoppingItemEntry.COLUMN_DONE,true);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         Date lastUpdate = new Date(prefs.getLong(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME,0));
@@ -450,34 +490,34 @@ public class DoUIParseSyncAdapter {
 
         List<ShoppingItem> items = null;
         try {
+            startSync(query);
             items = query.find();
             List<ContentValues> newValues = new ArrayList<ContentValues>();
             int updated = 0;
             for (final ShoppingItem item : items) {
                 ContentValues values = new ContentValues();
                 values.put(DoUIContract.ShoppingItemEntry.COLUMN_CREATED_BY, item.getCreatedBy());
-                values.put(DoUIContract.ShoppingItemEntry.COLUMN_DONE,item.getDone());
-                values.put(DoUIContract.ShoppingItemEntry.COLUMN_TITLE,item.getTitle());
-                values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID,item.getObjectId());
-                values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT,item.getUrgent());
-                values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY,item.getQuantity());
-                values.put(DoUIContract.ShoppingItemEntry.COLUMN_LAST_UPDATE,item.getUpdatedAt().getTime());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_DONE, item.getDone());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_TITLE, item.getTitle());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID, item.getObjectId());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_URGENT, item.getUrgent());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_QUANTITY, item.getQuantity());
+                values.put(DoUIContract.ShoppingItemEntry.COLUMN_LAST_UPDATE, item.getUpdatedAt().getTime());
 
                 Cursor cursor = context.getContentResolver().query(DoUIContract.ShoppingItemEntry.CONTENT_URI,
                         SHOPPING_COLUMNS,
-                        DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
-                        new String[]{item.getObjectId()},null);
+                        DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID + " = ?",
+                        new String[]{item.getObjectId()}, null);
                 if (cursor != null && cursor.moveToFirst()) {
                     updated += context.getContentResolver().update(DoUIContract.ShoppingItemEntry.CONTENT_URI,
                             values,
-                            DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID+" = ?",
+                            DoUIContract.ShoppingItemEntry.COLUMN_PARSE_ID + " = ?",
                             new String[]{item.getObjectId()});
 
-                }
-                else {
+                } else {
                     newValues.add(values);
                 }
-
+            }
                 Log.v(LOG_TAG,"downloadShoppingItems: Updated "+updated+" rows");
                 int rows = context.getContentResolver().bulkInsert(DoUIContract.ShoppingItemEntry.CONTENT_URI,
                         newValues.toArray(new ContentValues[newValues.size()]));
@@ -486,10 +526,13 @@ public class DoUIParseSyncAdapter {
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
                 editor.putLong(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME,new Date().getTime());
                 editor.commit();
-            }
+
         }
          catch (ParseException e) {
             ParseErrorHandler.handleParseException(e,context);
+        }
+        finally {
+            syncDone(query);
         }
         notifyOnDone(context,DoUIContract.PATH_SHOPPING);
     }
@@ -519,23 +562,21 @@ public class DoUIParseSyncAdapter {
                 if (e == null) {
                     me.put(PARTNER_ID, partnerId);
                     final String partnerName = partner.getString(PARTNER_NAME);
-                    me.put(PARTNER_NAME,partnerName);
+                    me.put(PARTNER_NAME, partnerName);
                     me.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(ParseException e) {
                             if (e != null) {
                                 e.printStackTrace();
-                            }
-                            else {
-                                Intent intent = new Intent(context,NotificationsService.class);
+                            } else {
+                                Intent intent = new Intent(context, NotificationsService.class);
                                 intent.setAction(NotificationsService.ACTION_PARTNER_CONNECTED);
-                                intent.putExtra(NotificationsService.PARAM_PARTNER_NAME,partnerName);
+                                intent.putExtra(NotificationsService.PARAM_PARTNER_NAME, partnerName);
                                 context.startService(intent);
                             }
                         }
                     });
-                }
-                else {
+                } else {
                     e.printStackTrace();
                 }
             }
@@ -564,23 +605,43 @@ public class DoUIParseSyncAdapter {
 
 
     public static void logout(final Context context) {
+        getInstance().cancelSync();
         ParseUser.logOutInBackground(new LogOutCallback() {
             @Override
             public void done(ParseException e) {
                 if (e != null) {
                     e.printStackTrace();
                 }
+
                 DbHelper helper = new DbHelper(context);
                 helper.onUpgrade(helper.getWritableDatabase(), 0, 0);
                 DoUISyncAdapter.removeSyncAccount(context);
+
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                editor.remove(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME);
+                editor.remove(DoUIContract.TaskItemEntry.LAST_SYNC_TIME);
+                editor.commit();
+
+                context.stopService(new Intent(context.getApplicationContext(),DoUISyncService.class));
+
+                CookieManager manager = CookieManager.getInstance();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    manager.removeAllCookies(new ValueCallback<Boolean>() {
+                        @Override
+                        public void onReceiveValue(Boolean aBoolean) {
+
+                        }
+                    });
+                }
+                else {
+                    manager.removeAllCookie();
+                }
+
+                ActivityManager am = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
+                am.killBackgroundProcesses("com.ymgeva.doui");
+
             }
         });
-
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-        editor.remove(DoUIContract.ShoppingItemEntry.LAST_SYNC_TIME);
-        editor.remove(DoUIContract.TaskItemEntry.LAST_SYNC_TIME);
-        editor.commit();
-
 
     }
 

@@ -22,6 +22,7 @@ import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseQuery;
+import com.parse.ParseSession;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
@@ -29,6 +30,7 @@ import com.ymgeva.doui.MainActivity;
 import com.ymgeva.doui.R;
 import com.ymgeva.doui.parse.DoUIParseSyncAdapter;
 import com.ymgeva.doui.parse.DoUIPushBroadcastReceiver;
+import com.ymgeva.doui.parse.items.TaskItem;
 import com.ymgeva.doui.sync.DoUISyncAdapter;
 import com.ymgeva.doui.tasks.TaskListActivity;
 
@@ -260,6 +262,7 @@ public class LoginActivity extends ActionBarActivity implements LoginFragement.L
     private void goToMainScreen() {
         DoUISyncAdapter.onAccountCreated(getApplicationContext());
         Intent intent = new Intent(this,TaskListActivity.class);
+        intent.putExtra(TaskListActivity.EXTRA_IN_SYNC,true);
         startActivity(intent);
         finish();
     }

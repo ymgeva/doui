@@ -22,8 +22,18 @@ public class DoUISyncService extends Service {
         }
     }
 
+
+
     @Override
     public IBinder onBind(Intent intent) {
         return mSyncAdapter.getSyncAdapterBinder();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("SyncService", "onDestroy");
+    }
+
+
 }
