@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.ymgeva.doui.R;
 
@@ -62,8 +63,31 @@ public class SignUpFragment extends Fragment {
         mCreateAccountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onCreateAccountClicked(mEmailField.getText().toString(),
-                        mPasswordField.getText().toString(),mPasswordConfirmField.getText().toString(),mNameField.getText().toString());
+
+                String email = mEmailField.getText().toString();
+                String password = mPasswordField.getText().toString();
+                String passwordConfirm = mPasswordConfirmField.getText().toString();
+                String name = mNameField.getText().toString();
+
+                String errorMessage = null;
+                if (email == null || email.length() <= 0) {
+                    errorMessage = getActivity().getString(R.string.login_error,getActivity().getString(R.string.email));
+                } else if (password == null || password.length() <= 0) {
+                    errorMessage = getActivity().getString(R.string.login_error,getActivity().getString(R.string.password));
+                } else if (passwordConfirm == null || password.length() <= 0) {
+                    errorMessage = getActivity().getString(R.string.login_error,getActivity().getString(R.string.com_parse_ui_confirm_password_input_hint));
+                } else if (name == null || name.length() <= 0) {
+                    errorMessage = getActivity().getString(R.string.login_error,getActivity().getString(R.string.com_parse_ui_name_input_hint));
+                } else if (!password.equals(passwordConfirm)) {
+                    errorMessage = getActivity().getString(R.string.com_parse_ui_mismatch_confirm_password_toast);
+                }
+
+                if (errorMessage != null) {
+                    Toast.makeText(getActivity(),errorMessage,Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                mListener.onCreateAccountClicked(email,password,passwordConfirm,name);
             }
         });
 

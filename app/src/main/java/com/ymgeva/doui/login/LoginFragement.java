@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.ymgeva.doui.R;
 
@@ -36,6 +37,20 @@ public class LoginFragement extends android.support.v4.app.Fragment {
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String email = mEmailField.getText().toString();
+                String password = mPasswordField.getText().toString();
+
+
+                String errorMessage = null;
+                if (email == null || email.length() <= 0) {
+                    errorMessage = getActivity().getString(R.string.login_error,getActivity().getString(R.string.email));
+                } else if (password == null || password.length() <= 0) {
+                    errorMessage = getActivity().getString(R.string.login_error,getActivity().getString(R.string.password));
+                }
+                if (errorMessage != null) {
+                    Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();
+                    return;
+                }
                 mListener.onLoginClicked(mEmailField.getText().toString(),mPasswordField.getText().toString());
             }
         });
@@ -44,7 +59,10 @@ public class LoginFragement extends android.support.v4.app.Fragment {
         mSignUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onSignUpClicked(mEmailField.getText().toString(),mPasswordField.getText().toString());
+
+                String email = mEmailField.getText().toString();
+                String password = mPasswordField.getText().toString();
+                mListener.onSignUpClicked(email,password);
             }
         });
 

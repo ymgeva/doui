@@ -131,4 +131,7 @@
     <string name="prompt_password">Password</string>
     <string name="action_sign_in_short">Login</string>
     <string name="action_new_user">Sign Up</string>
+    <string name="login_error">%s cannot be empty</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
 </resources>
